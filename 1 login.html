@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #060714;
+    --panel-blue: #1c2aa0;
+    --panel-purple: #7c3aed;
+    --panel-pink: #ec2f8a;
+    --text-light: #f5f6ff;
+    --text-dim: #9ea1c9;
+    --input-bg: #10122a;
+    --input-border: #23264f;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    height: 100%;
+    margin: 0;
+    background: var(--bg);
+    font-family: 'Inter', sans-serif;
+    color: var(--text-light);
+    overflow: hidden;
+  }
+
+  body{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    position: relative;
+  }
+
+  /* ambient background glow, echoes the gradient panel colors */
+  body::before{
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(28,42,160,0.35), transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(236,47,138,0.25), transparent 45%);
+    pointer-events: none;
+  }
+
+  .auth-container{
+    position: relative;
+    width: min(920px, 92vw);
+    height: min(560px, 88vh);
+    background: #0a0c22;
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow:
+      0 30px 80px rgba(0,0,0,0.55),
+      0 0 0 1px rgba(255,255,255,0.04);
+    display: flex;
+  }
+
+  /* ---------- FORM PANELS ---------- */
+  .form-panel{
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 60%;
+    display: flex;
+    align-items: center;
+    padding: 0 56px;
+    transition:
+      opacity 900ms cubic-bezier(.77,0,.18,1),
+      transform 900ms cubic-bezier(.77,0,.18,1),
+      filter 900ms cubic-bezier(.77,0,.18,1);
+  }
+
+  .form-panel--login{
+    left: 0;
+    opacity: 1;
+    transform: translateX(0);
+    filter: blur(0);
+  }
+
+  .form-panel--register{
+    right: 0;
+    opacity: 0;
+    transform: translateX(80px);
+    filter: blur(6px);
+    pointer-events: none;
+  }
+
+  .auth-container.active .form-panel--login{
+    opacity: 0;
+    transform: translateX(-80px);
+    filter: blur(6px);
+    pointer-events: none;
+  }
+
+  .auth-container.active .form-panel--register{
+    opacity: 1;
+    transform: translateX(0);
+    filter: blur(0);
+    pointer-events: auto;
+  }
+
+  .form-content{ width: 100%; max-width: 320px; }
+
+  .eyebrow{
+    font-family: 'Sora', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--panel-pink);
+    margin: 0 0 10px;
+  }
+
+  h1.form-title{
+    font-family: 'Sora', sans-serif;
+    font-size: 30px;
+    font-weight: 800;
+    margin: 0 0 8px;
+  }
+
+  .form-sub{
+    color: var(--text-dim);
+    font-size: 14px;
+    margin: 0 0 28px;
+    line-height: 1.5;
+  }
+
+  .field{
+    margin-bottom: 16px;
+  }
+
+  .field label{
+    display: block;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    letter-spacing: .3px;
+  }
+
+  .field input{
+    width: 100%;
+    padding: 12px 14px;
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    color: var(--text-light);
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 200ms ease, box-shadow 200ms ease;
+  }
+
+  .field input::placeholder{ color: #565a86; }
+
+  .field input:focus{
+    border-color: var(--panel-purple);
+    box-shadow: 0 0 0 3px rgba(124,58,237,0.25);
+  }
+
+  .row-between{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12.5px;
+    color: var(--text-dim);
+    margin: 4px 0 22px;
+  }
+
+  .row-between a{
+    color: var(--text-dim);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+  }
+  .row-between a:hover{ color: var(--text-light); border-color: var(--text-light); }
+
+  .check{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-primary{
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(120deg, var(--panel-blue), var(--panel-purple) 55%, var(--panel-pink));
+    color: #fff;
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: .5px;
+    cursor: pointer;
+    transition: transform 200ms ease, box-shadow 200ms ease;
+  }
+
+  .btn-primary:hover{
+    transform: translateY(-1px);
+    box-shadow: 0 10px 26px rgba(124,58,237,0.35);
+  }
+
+  .switch-line{
+    margin-top: 26px;
+    font-size: 13px;
+    color: var(--text-dim);
+    text-align: center;
+  }
+
+  .switch-line button{
+    background: none;
+    border: none;
+    color: var(--panel-pink);
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* ---------- DIAGONAL OVERLAY PANEL ---------- */
+  .overlay-panel{
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 46%;
+    height: 100%;
+    background: linear-gradient(160deg, var(--panel-blue) 0%, var(--panel-purple) 50%, var(--panel-pink) 100%);
+    clip-path: polygon(14% 0, 100% 0, 100% 100%, 0 100%);
+    transition:
+      transform 900ms cubic-bezier(.77,0,.18,1),
+      clip-path 900ms cubic-bezier(.77,0,.18,1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    z-index: 2;
+  }
+
+  .auth-container.active .overlay-panel{
+    transform: translateX(-118%);
+    clip-path: polygon(0 0, 86% 0, 100% 100%, 0 100%);
+  }
+
+  .overlay-content{
+    text-align: center;
+    max-width: 240px;
+    transition: opacity 500ms ease;
+  }
+
+  .overlay-content .tag{
+    font-family: 'Sora', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    opacity: .85;
+    margin-bottom: 12px;
+  }
+
+  .overlay-content h2{
+    font-family: 'Sora', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    margin: 0 0 10px;
+    line-height: 1.25;
+  }
+
+  .overlay-content p{
+    font-size: 13.5px;
+    line-height: 1.6;
+    opacity: .9;
+    margin: 0 0 24px;
+  }
+
+  .overlay-content .btn-ghost{
+    padding: 10px 26px;
+    border: 1.5px solid rgba(255,255,255,0.8);
+    border-radius: 10px;
+    background: transparent;
+    color: #fff;
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 12.5px;
+    letter-spacing: .5px;
+    cursor: pointer;
+    transition: background 200ms ease, color 200ms ease;
+  }
+
+  .overlay-content .btn-ghost:hover{
+    background: #fff;
+    color: var(--panel-purple);
+  }
+
+  /* mobile */
+  @media (max-width: 720px){
+    .auth-container{ width: 100vw; height: 100vh; border-radius: 0; }
+    .form-panel{ width: 100%; padding: 0 28px; }
+    .overlay-panel{ display: none; }
+    .auth-container.active .form-panel--login{ display: none; }
+    .form-panel--register{ pointer-events: none; }
+    .auth-container.active .form-panel--register{ pointer-events: auto; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="auth-container" id="authContainer">
+
+    <!-- LOGIN -->
+    <div class="form-panel form-panel--login">
+      <div class="form-content">
+        <p class="eyebrow">LOGIN</p>
+        <h1 class="form-title">Sign in</h1>
+        <p class="form-sub">Welcome back — enter your details to continue.</p>
+
+        <div class="field">
+          <label for="loginEmail">Email</label>
+          <input id="loginEmail" type="email" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="field">
+          <label for="loginPass">Password</label>
+          <input id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+
+        <div class="row-between">
+          <label class="check"><input type="checkbox" style="accent-color:#7c3aed;"> Remember me</label>
+          <a href="#">Forgot password?</a>
+        </div>
+
+        <button class="btn-primary" type="button">SIGN IN</button>
+
+        <p class="switch-line">
+          Don't have an account?
+          <button type="button" onclick="toggleAuth(true)">Sign up</button>
+        </p>
+      </div>
+    </div>
+
+    <!-- REGISTER -->
+    <div class="form-panel form-panel--register">
+      <div class="form-content">
+        <p class="eyebrow">REGISTER</p>
+        <h1 class="form-title">Create account</h1>
+        <p class="form-sub">Join us — it only takes a minute.</p>
+
+        <div class="field">
+          <label for="regName">Full name</label>
+          <input id="regName" type="text" placeholder="Jane Doe" autocomplete="name">
+        </div>
+        <div class="field">
+          <label for="regEmail">Email</label>
+          <input id="regEmail" type="email" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="field">
+          <label for="regPass">Password</label>
+          <input id="regPass" type="password" placeholder="••••••••" autocomplete="new-password">
+        </div>
+
+        <button class="btn-primary" type="button" style="margin-top:6px;">SIGN UP</button>
+
+        <p class="switch-line">
+          Already have an account?
+          <button type="button" onclick="toggleAuth(false)">Sign in</button>
+        </p>
+      </div>
+    </div>
+
+    <!-- DIAGONAL OVERLAY -->
+    <div class="overlay-panel" id="overlayPanel">
+      <div class="overlay-content" id="overlayContent">
+        <p class="tag">New here?</p>
+        <h2>Start your journey with us</h2>
+        <p>Create an account to unlock your dashboard and pick up right where you left off.</p>
+        <button class="btn-ghost" type="button" onclick="toggleAuth(true)">SIGN UP</button>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+  const container = document.getElementById('authContainer');
+  const overlayContent = document.getElementById('overlayContent');
+
+  function toggleAuth(toRegister){
+    container.classList.toggle('active', toRegister);
+    setTimeout(() => {
+      if(toRegister){
+        overlayContent.innerHTML = `
+          <p class="tag">Already a member?</p>
+          <h2>Good to see you again</h2>
+          <p>Sign in with your account to pick up right where you left off.</p>
+          <button class="btn-ghost" type="button" onclick="toggleAuth(false)">SIGN IN</button>`;
+      } else {
+        overlayContent.innerHTML = `
+          <p class="tag">New here?</p>
+          <h2>Start your journey with us</h2>
+          <p>Create an account to unlock your dashboard and pick up right where you left off.</p>
+          <button class="btn-ghost" type="button" onclick="toggleAuth(true)">SIGN UP</button>`;
+      }
+    }, 260);
+  }
+</script>
+
+</body>
+</html>
