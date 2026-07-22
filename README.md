@@ -76,7 +76,7 @@ login-page-templates/
 ## 🚀 Quick Start
 
 ```bash
-git clone https://github.com/<your-username>/login-page-templates.git
+git clone https://github.com/<Syed-Muhammad-Tayyab>/login-page-templates.git
 cd login-page-templates/html-css-js/glassmorphism
 open index.html
 ```
