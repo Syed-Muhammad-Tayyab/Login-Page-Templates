@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Foundry — Access your library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bitter:wght@600&family=Space+Mono:wght@400;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#faf9f6;
+    --ink:#14140f;
+    --red:#c81e0f;
+    --line:#dfddd3;
+    --muted:#6b6a63;
+    --radius:3px;
+    --ease: cubic-bezier(.16,.8,.24,1);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family:'Work Sans', sans-serif;
+  }
+
+  .stage{
+    min-height:100vh;
+    display:grid;
+    grid-template-columns: 43% 57%;
+  }
+
+  /* ---------- Specimen panel (left) ---------- */
+  .specimen{
+    background: var(--red);
+    color: var(--paper);
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    padding:44px 46px;
+    min-height:280px;
+  }
+  .specimen__top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+  }
+  .specimen__glyph{
+    font-family:'Archivo Black', sans-serif;
+    font-size:clamp(120px, 16vw, 230px);
+    line-height:0.76;
+    letter-spacing:-0.02em;
+    margin:18px 0 6px;
+    transition: font-family .25s var(--ease);
+    user-select:none;
+  }
+  .specimen__glyph.f-serif{ font-family:'Bitter', serif; font-weight:600; }
+  .specimen__glyph.f-mono{ font-family:'Space Mono', monospace; font-weight:700; letter-spacing:-0.04em; }
+  .specimen__caption{
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    opacity:0.85;
+    min-height:14px;
+  }
+  .specimen__foot{
+    font-family:'Space Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    opacity:0.7;
+    margin-top:30px;
+  }
+
+  /* ---------- Form panel (right) ---------- */
+  .panel{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:56px 40px;
+  }
+  .panel__inner{ width:100%; max-width:400px; }
+
+  .eyebrow{
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:0 0 16px;
+  }
+  h1{
+    font-family:'Work Sans', sans-serif;
+    font-weight:700;
+    font-size:32px;
+    letter-spacing:-0.015em;
+    line-height:1.12;
+    margin:0 0 10px;
+  }
+  .sub{
+    font-size:14.5px;
+    color:var(--muted);
+    line-height:1.55;
+    margin:0 0 34px;
+    max-width:36ch;
+  }
+
+  form{ display:flex; flex-direction:column; gap:22px; }
+
+  .field label{
+    display:block;
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:9px;
+  }
+  .field__row{ display:flex; align-items:baseline; justify-content:space-between; }
+  .field input{
+    width:100%;
+    border:none;
+    border-bottom:1.5px solid var(--line);
+    border-radius:0;
+    background:transparent;
+    padding:9px 2px 10px;
+    font-family:'Work Sans', sans-serif;
+    font-size:15.5px;
+    color:var(--ink);
+    outline:none;
+    transition: border-color .2s var(--ease), border-bottom-width .2s var(--ease);
+  }
+  .field input:focus{ border-bottom:2px solid var(--red); padding-bottom:9px; }
+  .field input:focus-visible{ outline:none; }
+
+  .txt-toggle{
+    border:none; background:none; padding:0;
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.08em;
+    color:var(--muted);
+    cursor:pointer;
+    transition: color .2s var(--ease);
+  }
+  .txt-toggle:hover{ color:var(--red); }
+  .txt-toggle:focus-visible{ outline:2px solid var(--red); outline-offset:3px; }
+
+  .row-between{ display:flex; align-items:center; justify-content:space-between; }
+
+  .check{
+    display:flex; align-items:center; gap:9px;
+    font-size:13.5px; color:var(--muted);
+    cursor:pointer; user-select:none;
+  }
+  .check input{ display:none; }
+  .check .box{
+    width:16px; height:16px;
+    border:1.5px solid var(--line);
+    border-radius:2px;
+    position:relative;
+    flex-shrink:0;
+    transition: border-color .2s var(--ease), background .2s var(--ease);
+  }
+  .check .box::after{
+    content:"";
+    position:absolute; left:3px; top:1px;
+    width:6px; height:10px;
+    border-right:2px solid var(--paper);
+    border-bottom:2px solid var(--paper);
+    transform: rotate(45deg) scale(0);
+    transition: transform .15s var(--ease);
+  }
+  .check input:checked ~ .box{ background:var(--red); border-color:var(--red); }
+  .check input:checked ~ .box::after{ transform: rotate(45deg) scale(1); }
+  .check input:focus-visible ~ .box{ outline:2px solid var(--red); outline-offset:2px; }
+
+  .link{
+    font-size:13.5px;
+    color:var(--ink);
+    text-decoration:none;
+    border-bottom:1px solid var(--line);
+    transition: color .2s var(--ease), border-color .2s var(--ease);
+  }
+  .link:hover{ color:var(--red); border-color:var(--red); }
+  .link:focus-visible{ outline:2px solid var(--red); outline-offset:3px; }
+
+  .btn-primary{
+    position:relative;
+    overflow:hidden;
+    margin-top:8px;
+    width:100%;
+    padding:16px 18px;
+    border:none;
+    border-radius:var(--radius);
+    background: var(--ink);
+    color: var(--paper);
+    font-family:'Work Sans', sans-serif;
+    font-weight:600;
+    font-size:14.5px;
+    letter-spacing:0.01em;
+    cursor:pointer;
+    transition: background .2s var(--ease);
+  }
+  .btn-primary:hover{ background: var(--red); }
+  .btn-primary:focus-visible{ outline:2px solid var(--red); outline-offset:3px; }
+  .btn-primary .bar{
+    position:absolute; left:0; bottom:0; height:2px; width:0%;
+    background: var(--paper);
+    transition: width 1.6s linear;
+  }
+  .btn-primary[data-loading="true"] .bar{ width:100%; }
+  .btn-primary[data-loading="true"]{ pointer-events:none; }
+  .btn-primary[data-loading="true"] .btn-label::after{ content:"Signing in…"; }
+  .btn-primary .btn-label::after{ content:"Sign in"; }
+
+  .divider{
+    display:flex; align-items:center; gap:14px;
+    margin:26px 0 20px;
+    color:var(--muted);
+    font-family:'Space Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:0.1em;
+  }
+  .divider::before, .divider::after{ content:""; flex:1; height:1px; background:var(--line); }
+
+  .altauth{ display:flex; flex-direction:column; gap:10px; }
+  .alt-btn{
+    padding:13px 16px;
+    border:1.5px solid var(--ink);
+    border-radius:var(--radius);
+    background:transparent;
+    color:var(--ink);
+    font-family:'Work Sans', sans-serif;
+    font-weight:500;
+    font-size:13.5px;
+    cursor:pointer;
+    transition: border-color .2s var(--ease), color .2s var(--ease);
+  }
+  .alt-btn:hover{ border-color:var(--red); color:var(--red); }
+  .alt-btn:focus-visible{ outline:2px solid var(--red); outline-offset:2px; }
+
+  .foot{
+    text-align:center;
+    font-size:13.5px;
+    color:var(--muted);
+    margin-top:26px;
+  }
+  .trust{
+    text-align:center;
+    font-family:'Space Mono', monospace;
+    font-size:10px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-top:16px;
+    opacity:0.8;
+  }
+
+  @media (max-width: 900px){
+    .stage{ grid-template-columns:1fr; }
+    .specimen{ min-height:0; padding:32px 28px; }
+    .specimen__glyph{ font-size:clamp(90px, 26vw, 160px); margin:12px 0 4px; }
+    .panel{ padding:44px 26px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition-duration:0.01ms !important; animation-duration:0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="stage">
+
+    <aside class="specimen" aria-hidden="true">
+      <div class="specimen__top">
+        <span>Foundry Type Co.</span>
+        <span>No. 014</span>
+      </div>
+      <div>
+        <div class="specimen__glyph" id="glyph">Aa</div>
+        <div class="specimen__caption" id="glyphCaption">NOW SHOWING — ARCHIVO BLACK</div>
+      </div>
+      <div class="specimen__foot">Est. 2016 · Independent type foundry</div>
+    </aside>
+
+    <main class="panel">
+      <div class="panel__inner">
+        <p class="eyebrow">Member sign in</p>
+        <h1>Access your library</h1>
+        <p class="sub">Sign in to download licensed fonts and manage your foundry account.</p>
+
+        <form id="loginForm" novalidate>
+          <div class="field">
+            <label for="email">01 — Email</label>
+            <input type="email" id="email" autocomplete="email" required>
+          </div>
+
+          <div class="field">
+            <div class="field__row">
+              <label for="password">02 — Password</label>
+              <button type="button" class="txt-toggle" id="pwToggle" aria-pressed="false">SHOW</button>
+            </div>
+            <input type="password" id="password" autocomplete="current-password" required>
+          </div>
+
+          <div class="row-between">
+            <label class="check">
+              <input type="checkbox" id="remember">
+              <span class="box"></span>
+              Remember this device
+            </label>
+            <a href="#" class="link">Forgot password?</a>
+          </div>
+
+          <button type="submit" class="btn-primary" id="submitBtn" data-loading="false">
+            <span class="btn-label"></span>
+            <span class="bar"></span>
+          </button>
+        </form>
+
+        <div class="divider">OR</div>
+
+        <div class="altauth">
+          <button type="button" class="alt-btn">Continue with Google</button>
+          <button type="button" class="alt-btn">Continue with Adobe ID</button>
+        </div>
+
+        <p class="foot">New to Foundry? <a href="#" class="link">Start a free trial</a></p>
+        <p class="trust">Secure session · SSL encrypted</p>
+      </div>
+    </main>
+
+  </div>
+
+<script>
+  const glyph = document.getElementById('glyph');
+  const caption = document.getElementById('glyphCaption');
+  const emailInput = document.getElementById('email');
+  const pwInput = document.getElementById('password');
+
+  const states = {
+    default: { cls: '', label: 'NOW SHOWING — ARCHIVO BLACK' },
+    email:   { cls: 'f-serif', label: 'NOW SHOWING — BITTER' },
+    password:{ cls: 'f-mono', label: 'NOW SHOWING — SPACE MONO' }
+  };
+
+  function setGlyph(state){
+    glyph.classList.remove('f-serif','f-mono');
+    if(state.cls) glyph.classList.add(state.cls);
+    caption.textContent = state.label;
+  }
+
+  function revertIfUnfocused(){
+    setTimeout(() => {
+      const active = document.activeElement;
+      if(active !== emailInput && active !== pwInput){
+        setGlyph(states.default);
+      }
+    }, 10);
+  }
+
+  emailInput.addEventListener('focus', () => setGlyph(states.email));
+  pwInput.addEventListener('focus', () => setGlyph(states.password));
+  emailInput.addEventListener('blur', revertIfUnfocused);
+  pwInput.addEventListener('blur', revertIfUnfocused);
+
+  // Password visibility toggle (text label, not icon — keeps the flat/typographic language)
+  const pwToggle = document.getElementById('pwToggle');
+  pwToggle.addEventListener('click', () => {
+    const isPw = pwInput.type === 'password';
+    pwInput.type = isPw ? 'text' : 'password';
+    pwToggle.textContent = isPw ? 'HIDE' : 'SHOW';
+    pwToggle.setAttribute('aria-pressed', String(isPw));
+  });
+
+  // Demo submit state — swap for a real request
+  const form = document.getElementById('loginForm');
+  const submitBtn = document.getElementById('submitBtn');
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (submitBtn.dataset.loading === 'true') return;
+    submitBtn.dataset.loading = 'true';
+    setTimeout(() => { submitBtn.dataset.loading = 'false'; }, 1700);
+  });
+</script>
+</body>
+</html>
