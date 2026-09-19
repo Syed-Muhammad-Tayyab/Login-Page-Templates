@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign in — Aurora Glass</title>
+<meta name="description" content="Warm glassmorphic login template with a liquid micro-interaction system.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#faf5ee;
+    --ink:#2a231d;
+    --muted:#8a7d72;
+    --muted-2:#b3a89c;
+    --glass: rgba(255,255,255,0.48);
+    --glass-strong: rgba(255,255,255,0.7);
+    --glass-border: rgba(255,255,255,0.65);
+    --accent-1:#ff9a5a;
+    --accent-2:#e2472f;
+    --accent-ink:#c23f24;
+    --error:#b23b2e;
+    --font-display:'Fraunces', serif;
+    --font-body:'Inter', sans-serif;
+    --font-mono:'Space Mono', monospace;
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0; min-height:100vh; background:var(--paper); color:var(--ink);
+    font-family:var(--font-body);
+    display:flex; align-items:center; justify-content:center;
+    padding:32px 16px; position:relative; overflow-x:hidden;
+  }
+
+  /* ---------- aurora background ---------- */
+  .aurora{ position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+  .aurora span{
+    position:absolute; border-radius:50%; filter:blur(85px); opacity:0.55;
+  }
+  .aurora span:nth-child(1){
+    width:480px; height:480px; top:-140px; left:-120px; background:#ffb789;
+    animation: drift1 22s ease-in-out infinite alternate;
+  }
+  .aurora span:nth-child(2){
+    width:520px; height:520px; bottom:-180px; right:-140px; background:#c9b6ea;
+    animation: drift2 26s ease-in-out infinite alternate;
+  }
+  .aurora span:nth-child(3){
+    width:380px; height:380px; top:38%; left:48%; background:#a9d3bd;
+    animation: drift3 19s ease-in-out infinite alternate;
+  }
+  @keyframes drift1{ from{ transform:translate(0,0) scale(1); } to{ transform:translate(60px,40px) scale(1.08); } }
+  @keyframes drift2{ from{ transform:translate(0,0) scale(1); } to{ transform:translate(-50px,-30px) scale(1.05); } }
+  @keyframes drift3{ from{ transform:translate(-50%,-50%) scale(1); } to{ transform:translate(-50%,-50%) translate(30px,-40px) scale(1.12); } }
+
+  .card{
+    position:relative; z-index:2; width:min(420px,100%);
+    background:var(--glass);
+    backdrop-filter: blur(22px) saturate(160%);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    border:1px solid var(--glass-border);
+    border-radius:28px;
+    padding:48px 40px 38px;
+    box-shadow: 0 30px 80px rgba(90,55,25,0.16), inset 0 1px 0 rgba(255,255,255,0.6);
+    overflow:visible;
+  }
+  .card::before{
+    content:''; position:absolute; top:0; left:0; width:60%; height:40%;
+    background: radial-gradient(ellipse at top left, rgba(255,255,255,0.55), transparent 70%);
+    border-radius:28px 0 0 0; pointer-events:none;
+  }
+
+  .heading{ position:relative; text-align:center; margin-bottom:34px; }
+  .heading .eyebrow{
+    display:block; font-family:var(--font-mono); font-size:10px; letter-spacing:0.16em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:10px;
+  }
+  .heading h1{ font-family:var(--font-display); font-weight:600; font-style:italic; font-size:30px; margin:0 0 10px; }
+  .heading p{ margin:0; color:var(--muted); font-size:13.5px; line-height:1.5; }
+
+  /* ---------- fields ---------- */
+  .field{ position:relative; margin:34px 0 22px; }
+  .field__pill{
+    position:relative; display:flex; align-items:center; height:52px;
+    border-radius:26px; background:rgba(255,255,255,0.42);
+    border:1.5px solid rgba(255,255,255,0.55); padding:0 18px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+  }
+  .field__pill:focus-within{
+    border-color: var(--accent-2);
+    box-shadow: 0 0 0 5px rgba(226,71,47,0.12);
+    background: rgba(255,255,255,0.62);
+  }
+  .field.is-invalid .field__pill{
+    border-color: var(--error);
+    box-shadow: 0 0 0 5px rgba(178,59,46,0.12);
+  }
+
+  .field-icon{ width:17px; height:17px; margin-right:12px; flex-shrink:0; color:var(--muted); transition:color 0.3s ease; }
+  .field__pill:focus-within .field-icon{ color:var(--accent-ink); }
+  .field.is-invalid .field-icon{ color:var(--error); }
+
+  .field input{
+    background:transparent; border:none; outline:none; width:100%;
+    font-family:var(--font-body); font-size:15px; color:var(--ink); padding:0;
+  }
+  .field label{
+    position:absolute; left:41px; top:50%; transform:translateY(-50%);
+    font-size:15px; color:var(--muted); pointer-events:none; transition:all 0.25s ease;
+  }
+  .field input:focus ~ label,
+  .field input:not(:placeholder-shown) ~ label{
+    top:-24px; left:6px; transform:translateY(0);
+    font-size:11px; letter-spacing:0.08em; text-transform:uppercase;
+    font-family:var(--font-mono); color:var(--accent-ink);
+  }
+  .field.is-invalid label{ color:var(--error); }
+
+  .field__hint{
+    min-height:16px; margin:8px 0 0 6px; font-size:12px; font-family:var(--font-mono);
+    color:var(--error); opacity:0; transition:opacity 0.25s ease;
+  }
+  .field.is-invalid .field__hint{ opacity:1; }
+  .field__hint--capslock{ color:var(--muted); }
+  .field__hint--capslock.is-visible{ opacity:1; }
+
+  @keyframes shake{
+    10%,90%{ transform:translateX(-1px); } 20%,80%{ transform:translateX(2px); }
+    30%,50%,70%{ transform:translateX(-4px); } 40%,60%{ transform:translateX(4px); }
+  }
+  .field.is-shaking .field__pill{ animation: shake 0.5s; }
+
+  .toggle-visibility{
+    position:absolute; right:16px; top:50%; transform:translateY(-50%);
+    width:19px; height:19px; border:none; background:none; cursor:pointer; color:var(--muted); padding:0;
+  }
+  .toggle-visibility svg{ position:absolute; inset:0; width:19px; height:19px; transition:opacity 0.25s ease, transform 0.25s ease; }
+  .icon-eye-off{ opacity:0; transform:scale(0.6); }
+  .toggle-visibility.is-visible .icon-eye{ opacity:0; transform:scale(0.6); }
+  .toggle-visibility.is-visible .icon-eye-off{ opacity:1; transform:scale(1); }
+
+  .form-row{ display:flex; align-items:center; justify-content:space-between; margin:6px 4px 28px; }
+  .switch{ display:flex; align-items:center; gap:10px; cursor:pointer; font-size:13px; color:var(--muted); user-select:none; }
+  .switch input{ position:absolute; opacity:0; width:0; height:0; }
+  .switch__track{ width:34px; height:19px; border-radius:999px; position:relative; background:rgba(255,255,255,0.5); border:1px solid rgba(255,255,255,0.65); transition:all 0.3s ease; }
+  .switch__thumb{ position:absolute; top:2px; left:2px; width:13px; height:13px; border-radius:50%; background:var(--muted); transition:all 0.3s cubic-bezier(.4,.2,.2,1.4); }
+  .switch input:checked + .switch__track{ background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); border-color:transparent; }
+  .switch input:checked + .switch__track .switch__thumb{ transform:translateX(15px); background:#fff8f0; }
+
+  .link-muted{ color:var(--muted); font-size:13px; text-decoration:none; border-bottom:1px dotted transparent; transition:all 0.2s ease; }
+  .link-muted:hover{ color:var(--accent-ink); border-color:var(--accent-1); }
+
+  .submit-btn{
+    position:relative; width:100%; height:52px; border:none; border-radius:26px;
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+    color:#fff8f0; cursor:pointer; overflow:visible;
+    font-family:var(--font-body); font-weight:600; font-size:15.5px;
+    display:grid; place-items:center;
+    box-shadow: 0 14px 30px rgba(226,71,47,0.32);
+    transition: transform 0.15s ease, box-shadow 0.3s ease;
+  }
+  .submit-btn:hover{ transform:translateY(-1px); box-shadow: 0 18px 36px rgba(226,71,47,0.42); }
+  .submit-btn:disabled{ cursor:default; }
+
+  .submit-btn__label{ grid-area:1/1; transition: opacity 0.25s ease; }
+  .submit-btn.is-loading .submit-btn__label,
+  .submit-btn.is-success .submit-btn__label{ opacity:0; }
+
+  .liquid-loader{
+    grid-area:1/1; position:relative; width:100%; height:100%;
+    display:none; filter: blur(4px) contrast(20);
+  }
+  .submit-btn.is-loading .liquid-loader{ display:block; }
+  .liquid-loader span{
+    position:absolute; top:50%; left:50%; width:11px; height:11px; margin:-5.5px 0 0 -5.5px;
+    border-radius:50%; background:#fff8f0; animation: liquidMove 1.1s ease-in-out infinite;
+  }
+  .liquid-loader span:nth-child(1){ animation-delay:0s; }
+  .liquid-loader span:nth-child(2){ animation-delay:0.15s; }
+  .liquid-loader span:nth-child(3){ animation-delay:0.3s; }
+  @keyframes liquidMove{
+    0%,100%{ transform:translateX(-14px) scale(1); }
+    50%{ transform:translateX(14px) scale(1.3); }
+  }
+
+  .submit-btn__check{
+    grid-area:1/1; opacity:0; transform:scale(0.5); width:22px; height:22px;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  .submit-btn.is-success .submit-btn__check{ opacity:1; transform:scale(1); }
+
+  .success-ring{
+    position:absolute; top:50%; left:50%; width:20px; height:20px; margin:-10px 0 0 -10px;
+    border-radius:50%; border:2px solid rgba(255,255,255,0.85); pointer-events:none;
+    animation: ringExpand 0.9s ease-out forwards;
+  }
+  @keyframes ringExpand{
+    to{ width:240px; height:240px; margin:-120px 0 0 -120px; opacity:0; border-width:1px; }
+  }
+
+  .divider{ display:flex; align-items:center; gap:12px; margin:28px 0; color:var(--muted-2); font-size:11px; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.1em; }
+  .divider::before, .divider::after{ content:''; flex:1; height:1px; background:rgba(0,0,0,0.08); }
+
+  .social-row{ display:flex; gap:12px; }
+  .social-btn{
+    flex:1; height:44px; border-radius:22px; border:1.5px solid rgba(255,255,255,0.6);
+    background:rgba(255,255,255,0.4); color:var(--muted); cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:8px; font-size:13px;
+    transition:all 0.25s ease;
+  }
+  .social-btn:hover{ border-color:var(--accent-1); color:var(--ink); background:rgba(255,255,255,0.6); transform:translateY(-1px); }
+  .social-mono{ width:17px; height:17px; border-radius:50%; display:grid; place-items:center; font-family:var(--font-mono); font-size:9px; font-weight:700; background:rgba(0,0,0,0.08); color:var(--ink); }
+
+  .signup-line{ text-align:center; margin-top:24px; font-size:13px; color:var(--muted); }
+  .signup-line a{ color:var(--accent-ink); text-decoration:none; border-bottom:1px dotted var(--accent-1); }
+
+  *:focus-visible{ outline:2px solid var(--accent-ink); outline-offset:2px; border-radius:4px; }
+
+  @media (max-width:480px){ .card{ padding:40px 24px 32px; } }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+
+<div class="card">
+  <div class="heading">
+    <span class="eyebrow">Account</span>
+    <h1>Welcome back</h1>
+    <p>Sign in to pick up where you left off.</p>
+  </div>
+
+  <form id="loginForm" novalidate>
+    <div class="field" data-field="email">
+      <div class="field__pill">
+        <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 7l9 6 9-6"></path></svg>
+        <input type="email" id="email" name="email" placeholder=" " autocomplete="username" required>
+        <label for="email">Email address</label>
+      </div>
+      <p class="field__hint" id="emailHint" aria-live="polite"></p>
+    </div>
+
+    <div class="field" data-field="password">
+      <div class="field__pill">
+        <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 018 0v3"></path></svg>
+        <input type="password" id="password" name="password" placeholder=" " autocomplete="current-password" required>
+        <label for="password">Password</label>
+        <button type="button" class="toggle-visibility" id="toggleVis" aria-label="Show password">
+          <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0112 19c-7 0-11-7-11-7a21.86 21.86 0 015.06-6.06M9.9 4.24A10.94 10.94 0 0112 4c7 0 11 7 11 7a21.86 21.86 0 01-3.22 4.14M14.12 14.12a3 3 0 11-4.24-4.24"></path><path d="M1 1l22 22"></path></svg>
+        </button>
+      </div>
+      <p class="field__hint field__hint--capslock" id="capsHint" aria-live="polite">Caps Lock is on</p>
+    </div>
+
+    <div class="form-row">
+      <label class="switch">
+        <input type="checkbox" id="remember">
+        <span class="switch__track"><span class="switch__thumb"></span></span>
+        <span class="switch__label">Remember this device</span>
+      </label>
+      <a href="#" class="link-muted">Forgot password?</a>
+    </div>
+
+    <button type="submit" class="submit-btn" id="submitBtn">
+      <span class="submit-btn__label">Sign in</span>
+      <div class="liquid-loader" aria-hidden="true"><span></span><span></span><span></span></div>
+      <svg class="submit-btn__check" viewBox="0 0 24 24" fill="none" stroke="#fff8f0" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    </button>
+
+    <div class="divider"><span>Or continue with</span></div>
+
+    <div class="social-row">
+      <button type="button" class="social-btn"><span class="social-mono">G</span>Google</button>
+      <button type="button" class="social-btn"><span class="social-mono">H</span>GitHub</button>
+    </div>
+
+    <p class="signup-line">New here? <a href="#">Create an account</a></p>
+  </form>
+</div>
+
+<script>
+(function(){
+  var emailInput = document.getElementById('email');
+  var passwordInput = document.getElementById('password');
+  var emailHint = document.getElementById('emailHint');
+  var capsHint = document.getElementById('capsHint');
+  var toggleVis = document.getElementById('toggleVis');
+  var form = document.getElementById('loginForm');
+  var submitBtn = document.getElementById('submitBtn');
+
+  function capsCheck(e){
+    if(typeof e.getModifierState === 'function'){
+      capsHint.classList.toggle('is-visible', e.getModifierState('CapsLock'));
+    }
+  }
+  passwordInput.addEventListener('keyup', capsCheck);
+  passwordInput.addEventListener('keydown', capsCheck);
+
+  function triggerShake(field){
+    field.classList.remove('is-shaking');
+    void field.offsetWidth;
+    field.classList.add('is-shaking');
+  }
+
+  function validateEmail(){
+    var field = emailInput.closest('.field');
+    var val = emailInput.value.trim();
+    if(val === ''){
+      field.classList.remove('is-invalid');
+      emailHint.textContent = '';
+      return false;
+    }
+    var ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+    if(ok){
+      field.classList.remove('is-invalid');
+      emailHint.textContent = '';
+    } else {
+      field.classList.add('is-invalid');
+      emailHint.textContent = 'Enter a valid email address.';
+      triggerShake(field);
+    }
+    return ok;
+  }
+  emailInput.addEventListener('blur', validateEmail);
+  emailInput.addEventListener('input', function(){
+    if(emailInput.closest('.field').classList.contains('is-invalid')) validateEmail();
+  });
+
+  toggleVis.addEventListener('click', function(){
+    var showing = passwordInput.type === 'text';
+    passwordInput.type = showing ? 'password' : 'text';
+    toggleVis.classList.toggle('is-visible', !showing);
+    toggleVis.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+    passwordInput.focus();
+  });
+
+  function spawnRings(){
+    for(var i = 0; i < 3; i++){
+      (function(i){
+        window.setTimeout(function(){
+          var ring = document.createElement('span');
+          ring.className = 'success-ring';
+          submitBtn.appendChild(ring);
+          ring.addEventListener('animationend', function(){ ring.remove(); });
+        }, i * 160);
+      })(i);
+    }
+  }
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+
+    var emailOk = validateEmail();
+    var pwdField = passwordInput.closest('.field');
+    var pwdOk = passwordInput.value.length > 0;
+    if(pwdOk){ pwdField.classList.remove('is-invalid'); }
+    else { pwdField.classList.add('is-invalid'); triggerShake(pwdField); }
+
+    if(!emailOk || !pwdOk){
+      (emailOk ? passwordInput : emailInput).focus();
+      return;
+    }
+
+    submitBtn.classList.add('is-loading');
+    submitBtn.disabled = true;
+
+    // --- Wire your real authentication call here ---
+    // Replace this setTimeout with a fetch() to your auth endpoint,
+    // then call the success/reset logic below based on the response.
+    window.setTimeout(function(){
+      submitBtn.classList.remove('is-loading');
+      submitBtn.classList.add('is-success');
+      spawnRings();
+
+      window.setTimeout(function(){
+        submitBtn.classList.remove('is-success');
+        submitBtn.disabled = false;
+      }, 3000);
+    }, 1400);
+  });
+})();
+</script>
+
+</body>
+</html>
