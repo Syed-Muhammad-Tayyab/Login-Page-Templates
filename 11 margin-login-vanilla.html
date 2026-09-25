@@ -5,6 +5,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Margin — Sign in</title>
 
+<!--
+  ============================================================
+  MARGIN — Client Portal Sign-in
+  Whitespace-first design system.
+
+  Concept: "Margin" is a small architecture studio whose own
+  identity is negative space — the same principle a floor plan
+  calls "void." The page borrows the vocabulary of a printed
+  drawing sheet: corner registration marks, a sheet number in
+  the header, hairline rules instead of boxed inputs, and a
+  single accent color reserved for architectural redlines.
+
+  Format: Vanilla HTML / CSS / JS — zero framework dependencies.
+  Structure: Mobile-first. Base styles target small screens;
+  min-width media queries progressively enhance for larger ones.
+
+  Fonts: Loaded from Google Fonts for full type quality. If you
+  need a truly offline/zero-request build, delete the <link>
+  tags below and the two @font-face families will fall back
+  automatically to the system stacks already set in :root.
+  ============================================================
+-->
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;1,400;1,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -369,7 +392,7 @@
   /* Hide sheet label + one footer link on the smallest phones
      so the header never wraps to two lines */
   @media (max-width: 380px){
-    .sheet-label{ display: none;  }
+    .sheet-label{ display: none; }
   }
 
 </style>
