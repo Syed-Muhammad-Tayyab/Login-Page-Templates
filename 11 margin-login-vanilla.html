@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Margin — Sign in</title>
+
+<!--
+  ============================================================
+  MARGIN — Client Portal Sign-in
+  Whitespace-first design system.
+
+  Concept: "Margin" is a small architecture studio whose own
+  identity is negative space — the same principle a floor plan
+  calls "void." The page borrows the vocabulary of a printed
+  drawing sheet: corner registration marks, a sheet number in
+  the header, hairline rules instead of boxed inputs, and a
+  single accent color reserved for architectural redlines.
+
+  Format: Vanilla HTML / CSS / JS — zero framework dependencies.
+  Structure: Mobile-first. Base styles target small screens;
+  min-width media queries progressively enhance for larger ones.
+
+  Fonts: Loaded from Google Fonts for full type quality. If you
+  need a truly offline/zero-request build, delete the <link>
+  tags below and the two @font-face families will fall back
+  automatically to the system stacks already set in :root.
+  ============================================================
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;1,400;1,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+  /* ==========================================================
+     1. TOKENS
+     A small, deliberate palette — nearly grayscale, with one
+     accent reserved for the studio's "redline" mark. Keep any
+     future edits inside this block; nothing below should need
+     a hard-coded color.
+     ========================================================== */
+  :root{
+    --white:        #FFFFFF;
+    --ink:          #16161A;
+    --muted:        #86837A;
+    --muted-soft:   #B9B6AC;
+    --hairline:     rgba(22,22,20,0.14);
+    --hairline-lo:  rgba(22,22,20,0.07);
+    --redline:      #C1442B;
+
+    /* Font stacks: web font first, honest system fallback second */
+    --font-serif: 'Newsreader', ui-serif, Georgia, 'Times New Roman', serif;
+    --font-sans:  'Manrope', ui-sans-serif, -apple-system, 'Segoe UI', sans-serif;
+
+    /* Fluid spacing scale used throughout — one place to retune density */
+    --space-page: clamp(20px, 6vw, 72px);
+    --space-lg:   clamp(48px, 10vw, 120px);
+  }
+
+  /* ==========================================================
+     2. RESET
+     Minimal, not exhaustive — just enough to stop browser
+     defaults from fighting the layout below.
+     ========================================================== */
+  *, *::before, *::after{ box-sizing: border-box; }
+  html, body{ margin:0; padding:0; }
+  body{
+    background: var(--white);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  a{ color: inherit; }
+  button{ font-family: inherit; }
+
+  /* ==========================================================
+     3. PAGE FRAME
+     Everything sits inside one full-height column: header,
+     centered form, footer. Whitespace is the layout system —
+     there is no card, no panel, no border around the content.
+     ========================================================== */
+  .page{
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-page);
+  }
+
+  /* Corner registration marks — borrowed from a printed drawing
+     sheet, they frame the page the way a title block frames a
+     plan. Purely visual, so hidden from assistive tech. */
+  .crop{
+    position: fixed;
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .crop::before, .crop::after{
+    content: "";
+    position: absolute;
+    background: var(--hairline);
+  }
+  .crop::before{ width: 100%; height: 1px; top: 50%; }
+  .crop::after{  width: 1px; height: 100%; left: 50%; }
+  .crop.tl{ top: 18px; left: 18px; }
+  .crop.tr{ top: 18px; right: 18px; }
+  .crop.bl{ bottom: 18px; left: 18px; }
+  .crop.br{ bottom: 18px; right: 18px; }
+
+  /* ==========================================================
+     4. HEADER
+     Brand mark on the left, a "sheet number" on the right —
+     the one numbered label on the page, and it is meaningful:
+     a drawing-set convention, not decoration.
+     ========================================================== */
+  .header{
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .brand{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 500;
+    font-size: 19px;
+    letter-spacing: 0.01em;
+  }
+
+  .brand .mark{
+    width: 7px;
+    height: 7px;
+    background: var(--redline);
+    flex-shrink: 0;
+  }
+
+  .sheet-label{
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ==========================================================
+     5. FORM REGION
+     Centered both axes, deliberately narrow. The width limit
+     is what makes the surrounding space read as "margin" rather
+     than an empty accident.
+     ========================================================== */
+  .form-region{
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-lg) 0;
+  }
+
+  .form-col{
+    width: 100%;
+    max-width: 360px;
+
+    /* entrance: a single quiet fade/rise, not a loop */
+    opacity: 0;
+    transform: translateY(10px);
+    animation: rise 700ms ease forwards;
+    animation-delay: 80ms;
+  }
+
+  @keyframes rise{
+    to{ opacity: 1; transform: translateY(0); }
+  }
+
+  .form-head{
+    margin-bottom: clamp(32px, 6vw, 48px);
+  }
+
+  .form-head .eyebrow{
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .form-head h1{
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(32px, 5vw, 38px);
+    line-height: 1.15;
+    margin: 0 0 10px 0;
+  }
+
+  .form-head p{
+    margin: 0;
+    font-size: 14.5px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .form-head p a{
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--redline);
+    padding-bottom: 1px;
+  }
+
+  /* ---- fields ---- */
+
+  form{ display: flex; flex-direction: column; gap: 30px; }
+
+  .field{ display: flex; flex-direction: column; gap: 10px; }
+
+  .field-row{
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
+  label{
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .forgot{
+    font-size: 11.5px;
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: color 200ms ease, border-color 200ms ease;
+  }
+  .forgot:hover{ color: var(--redline); border-color: var(--redline); }
+
+  /* Inputs are hairline underlines, never boxes — keeps the
+     whole page reading as open space rather than a stack of
+     bordered containers. */
+  .input-row{
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--hairline);
+    transition: border-color 200ms ease;
+  }
+  .input-row:focus-within{ border-color: var(--redline); }
+
+  input[type="email"],
+  input[type="password"]{
+    width: 100%;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-family: var(--font-sans);
+    font-size: 16px;
+    color: var(--ink);
+    padding: 8px 0 12px 0;
+  }
+  input::placeholder{ color: var(--muted-soft); }
+
+  .toggle-vis{
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px 0 12px 12px;
+    color: var(--muted);
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: color 180ms ease;
+    flex-shrink: 0;
+  }
+  .toggle-vis:hover{ color: var(--redline); }
+
+  /* ---- submit ---- */
+
+  button.submit{
+    margin-top: 4px;
+    width: 100%;
+    padding: 15px 4px;
+    background: var(--ink);
+    color: var(--white);
+    border: none;
+    font-weight: 600;
+    font-size: 13.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: background 200ms ease;
+  }
+  button.submit:hover{ background: var(--redline); }
+  button.submit .arrow{ transition: transform 200ms ease; }
+  button.submit:hover .arrow{ transform: translateX(4px); }
+
+  /* ---- divider + alt access ---- */
+
+  .divider{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 2px 0;
+  }
+  .divider .line{ flex: 1; height: 1px; background: var(--hairline); }
+  .divider span{
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .alt-row{ display: flex; gap: 12px; }
+
+  .alt-btn{
+    flex: 1;
+    padding: 12px 10px;
+    background: transparent;
+    border: 1px solid var(--hairline);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    cursor: pointer;
+    transition: border-color 200ms ease;
+  }
+  .alt-btn:hover{ border-color: var(--ink); }
+
+  /* ==========================================================
+     6. FOOTER
+     ========================================================== */
+  .footer{
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding-top: 20px;
+    border-top: 1px solid var(--hairline-lo);
+    font-size: 11.5px;
+    letter-spacing: 0.03em;
+    color: var(--muted-soft);
+  }
+  .footer a{ color: var(--muted-soft); text-decoration: none; border-bottom: 1px solid var(--hairline); }
+  .footer .links{ display: flex; gap: 18px; }
+
+  /* ==========================================================
+     7. ACCESSIBILITY
+     ========================================================== */
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible{
+    outline: 2px solid var(--redline);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .form-col{ animation: none; opacity: 1; transform: none; }
+  }
+
+  /* ==========================================================
+     8. MOBILE-FIRST BREAKPOINTS
+     Base rules above already work at 320px. These widen the
+     canvas rather than restructure it — the layout never
+     needed to change shape, only breathe more at larger sizes.
+     ========================================================== */
+
+  /* Small tablets and up: show the sheet label + footer links */
+  @media (min-width: 560px){
+    .footer .links{ display: flex; }
+  }
+
+  /* Tablet/desktop: crop marks become part of the visible system */
+  @media (min-width: 700px){
+    .crop{ width: 20px; height: 20px; }
+  }
+
+  /* Hide sheet label + one footer link on the smallest phones
+     so the header never wraps to two lines */
+  @media (max-width: 380px){
+    .sheet-label{ display: none; }
+  }
+
+</style>
+</head>
+<body>
+
+  <!-- Decorative print/drawing-sheet registration marks -->
+  <div class="crop tl" aria-hidden="true"></div>
+  <div class="crop tr" aria-hidden="true"></div>
+  <div class="crop bl" aria-hidden="true"></div>
+  <div class="crop br" aria-hidden="true"></div>
+
+  <div class="page">
+
+    <!-- ============== HEADER ============== -->
+    <header class="header">
+      <div class="brand">
+        <span class="mark" aria-hidden="true"></span>
+        Margin
+      </div>
+      <div class="sheet-label">Sheet 01 — Access</div>
+    </header>
+
+    <!-- ============== SIGN-IN FORM ============== -->
+    <main class="form-region">
+      <div class="form-col">
+
+        <div class="form-head">
+          <span class="eyebrow">Client portal</span>
+          <h1>Sign in</h1>
+          <p>New to Margin? <a href="#">Request access</a></p>
+        </div>
+
+        <form id="loginForm" autocomplete="on">
+
+          <div class="field">
+            <label for="email">Email</label>
+            <div class="input-row">
+              <input type="email" id="email" name="email" placeholder="you@studio.com" required>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="field-row">
+              <label for="password">Password</label>
+              <a href="#" class="forgot">Forgot?</a>
+            </div>
+            <div class="input-row">
+              <input type="password" id="password" name="password" placeholder="••••••••••" required>
+              <button type="button" class="toggle-vis" id="toggleVis">Show</button>
+            </div>
+          </div>
+
+          <button type="submit" class="submit">
+            <span>Continue</span>
+            <span class="arrow" aria-hidden="true">→</span>
+          </button>
+
+          <div class="divider">
+            <div class="line"></div><span>or continue with</span><div class="line"></div>
+          </div>
+
+          <div class="alt-row">
+            <button type="button" class="alt-btn">Google</button>
+            <button type="button" class="alt-btn">Microsoft</button>
+          </div>
+
+        </form>
+
+      </div>
+    </main>
+
+    <!-- ============== FOOTER ============== -->
+    <footer class="footer">
+      <span>© Margin Studio</span>
+      <span class="links">
+        <a href="#">Terms</a>
+        <a href="#">Privacy</a>
+      </span>
+    </footer>
+
+  </div>
+
+<script>
+  /* ============================================================
+     Vanilla JS — two small, self-contained behaviors.
+     No dependencies, no build step, no external calls.
+     ============================================================ */
+
+  // 1. Password visibility toggle
+  var passwordInput = document.getElementById('password');
+  var toggleButton   = document.getElementById('toggleVis');
+
+  toggleButton.addEventListener('click', function () {
+    var isHidden = passwordInput.type === 'password';
+    passwordInput.type = isHidden ? 'text' : 'password';
+    toggleButton.textContent = isHidden ? 'Hide' : 'Show';
+  });
+
+  // 2. Prevent the demo form from actually submitting/reloading.
+  //    Replace this with your real auth call.
+  document.getElementById('loginForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    // TODO: wire up to your authentication endpoint
+  });
+</script>
+
+</body>
+</html>
