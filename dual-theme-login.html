@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign in — Darkroom</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,450;9..144,560;9..144,650&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #F6F4EF;
+    --surface: #FBFAF7;
+    --ink: #17140F;
+    --ink-dim: #736C5E;
+    --ink-dimmer: #B4AC9B;
+    --line: #E3DDCE;
+    --line-bright: #CFC7B2;
+    --safelight: #C7351F;
+    --safelight-soft: rgba(199,53,31,0.10);
+    --safelight-glow: rgba(199,53,31,0.30);
+
+    --serif: 'Fraunces', serif;
+    --mono: 'IBM Plex Mono', monospace;
+    --body: 'Inter', sans-serif;
+  }
+
+  html[data-theme="dark"]{
+    --paper: #131110;
+    --surface: #191614;
+    --ink: #EFEAE0;
+    --ink-dim: #948B7B;
+    --ink-dimmer: #565048;
+    --line: #2B2621;
+    --line-bright: #3D362E;
+    --safelight: #E8532F;
+    --safelight-soft: rgba(232,83,47,0.14);
+    --safelight-glow: rgba(232,83,47,0.4);
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  html, body{ height:100%; }
+
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--body);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:40px 20px;
+    -webkit-font-smoothing:antialiased;
+    transition:background .45s ease, color .45s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
+  }
+
+  .card-wrap{
+    width:100%;
+    max-width:420px;
+  }
+
+  /* film perforation strip */
+  .perf-row{
+    display:flex;
+    justify-content:space-between;
+    padding:0 6px;
+  }
+  .perf-row span{
+    width:7px;
+    height:7px;
+    border-radius:1.5px;
+    background:var(--line-bright);
+    transition:background .45s ease;
+  }
+  .perf-row.top{ margin-bottom:14px; }
+  .perf-row.bottom{ margin-top:14px; }
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    padding:44px 40px 38px;
+    transition:background .45s ease, border-color .45s ease;
+  }
+
+  .card-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    margin-bottom:38px;
+  }
+
+  .brand{
+    font-family:var(--mono);
+    font-size:11.5px;
+    letter-spacing:0.15em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+  }
+  .brand strong{ color:var(--ink); font-weight:500; }
+
+  /* ---- aperture toggle ---- */
+  .toggle-btn{
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding:2px;
+    width:34px;
+    height:34px;
+    flex-shrink:0;
+  }
+  .toggle-btn svg{ width:100%; height:100%; display:block; }
+  .iris-core{
+    transition:fill .45s ease;
+  }
+  .blade{
+    transform-origin:50px 50px;
+    transition:transform .45s cubic-bezier(.65,0,.35,1), fill .45s ease;
+  }
+  html[data-theme="dark"] .blade{
+    transform: scaleY(0.42);
+  }
+  .ring{
+    fill:none;
+    stroke:var(--line-bright);
+    stroke-width:1.4;
+    transition:stroke .45s ease;
+  }
+
+  h1{
+    font-family:var(--serif);
+    font-weight:560;
+    font-size:30px;
+    letter-spacing:-0.01em;
+    line-height:1.15;
+    margin-bottom:10px;
+  }
+
+  .sub{
+    font-size:14px;
+    color:var(--ink-dim);
+    margin-bottom:34px;
+    line-height:1.55;
+  }
+  .sub a{
+    color:var(--ink);
+    text-decoration:none;
+    border-bottom:1px solid var(--line-bright);
+  }
+  .sub a:hover{ color:var(--safelight); border-color:var(--safelight); }
+
+  .field{ margin-bottom:22px; }
+
+  .field label{
+    display:block;
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:0.13em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    margin-bottom:9px;
+    transition:color .2s ease;
+  }
+
+  .input-row{ position:relative; }
+
+  .field input{
+    width:100%;
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--ink);
+    font-family:var(--body);
+    font-size:15px;
+    padding:12px 13px;
+    outline:none;
+    transition:border-color .2s ease, box-shadow .2s ease;
+  }
+  .field input::placeholder{ color:var(--ink-dimmer); }
+  .field input:focus{
+    border-color:var(--safelight);
+    box-shadow:0 0 0 3px var(--safelight-soft);
+  }
+  .field:focus-within label{ color:var(--safelight); }
+
+  .toggle-pw{
+    position:absolute;
+    right:12px;
+    top:50%;
+    transform:translateY(-50%);
+    background:none;
+    border:none;
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-dimmer);
+    cursor:pointer;
+  }
+  .toggle-pw:hover{ color:var(--ink); }
+
+  .row-between{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin:26px 0 28px;
+    font-size:13px;
+  }
+
+  .remember{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    color:var(--ink-dim);
+    cursor:pointer;
+    user-select:none;
+  }
+  .checkbox{
+    width:15px; height:15px;
+    border:1px solid var(--line-bright);
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .checkbox.checked{ background:var(--safelight); border-color:var(--safelight); }
+  .checkbox svg{ width:9px; height:9px; opacity:0; transition:opacity .1s ease; }
+  .checkbox.checked svg{ opacity:1; }
+
+  .forgot{
+    color:var(--ink-dim);
+    text-decoration:none;
+    border-bottom:1px solid transparent;
+    transition:color .15s ease, border-color .15s ease;
+  }
+  .forgot:hover{ color:var(--ink); border-color:var(--line-bright); }
+
+  .btn-primary{
+    width:100%;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    font-family:var(--body);
+    font-weight:600;
+    font-size:14.5px;
+    padding:14px 0;
+    cursor:pointer;
+    transition:background .2s ease, opacity .2s ease;
+  }
+  .btn-primary:hover{ background:var(--safelight); }
+
+  .meter{
+    margin-top:26px;
+    padding-top:20px;
+    border-top:1px solid var(--line);
+    display:flex;
+    justify-content:space-between;
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:0.04em;
+    color:var(--ink-dimmer);
+    transition:border-color .45s ease;
+  }
+  .meter span b{ color:var(--ink-dim); font-weight:500; }
+
+  .footer-note{
+    text-align:center;
+    margin-top:26px;
+    font-size:13px;
+    color:var(--ink-dim);
+  }
+  .footer-note a{
+    color:var(--ink);
+    text-decoration:none;
+    border-bottom:1px solid var(--line-bright);
+  }
+  .footer-note a:hover{ color:var(--safelight); border-color:var(--safelight); }
+
+  :focus-visible{ outline:1px solid var(--safelight); outline-offset:3px; }
+
+  @media (max-width:480px){
+    .card{ padding:34px 24px 30px; }
+    h1{ font-size:25px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="card-wrap">
+
+  <div class="perf-row top">
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="brand"><strong>Darkroom</strong> / Studio Access</div>
+
+      <button class="toggle-btn" id="theme-toggle" aria-label="Toggle light and dark theme">
+        <svg viewBox="0 0 100 100">
+          <circle class="ring" cx="50" cy="50" r="34"></circle>
+          <g id="blade-group">
+            <rect class="blade" x="47" y="18" width="6" height="26" rx="1" fill="currentColor" transform="rotate(0 50 50)"></rect>
+            <rect class="blade" x="47" y="18" width="6" height="26" rx="1" fill="currentColor" transform="rotate(45 50 50)"></rect>
+            <rect class="blade" x="47" y="18" width="6" height="26" rx="1" fill="currentColor" transform="rotate(90 50 50)"></rect>
+            <rect class="blade" x="47" y="18" width="6" height="26" rx="1" fill="currentColor" transform="rotate(135 50 50)"></rect>
+            <rect class="blade" x="47" y="18" width="6" height="26" rx="1" fill="currentColor" transform="rotate(180 50 50)"></rect>
+            <rect class="blade" x="47" y="18" width="6" height="26" rx="1" fill="currentColor" transform="rotate(225 50 50)"></rect>
+            <rect class="blade" x="47" y="18" width="6" height="26" rx="1" fill="currentColor" transform="rotate(270 50 50)"></rect>
+            <rect class="blade" x="47" y="18" width="6" height="26" rx="1" fill="currentColor" transform="rotate(315 50 50)"></rect>
+          </g>
+          <circle class="iris-core" cx="50" cy="50" r="6" fill="var(--safelight)"></circle>
+        </svg>
+      </button>
+    </div>
+
+    <h1>Develop the moment.</h1>
+    <p class="sub">Sign in to your darkroom. New here? <a href="#">Request a bench</a>.</p>
+
+    <form id="login-form" autocomplete="off">
+      <div class="field">
+        <label for="email">Email</label>
+        <div class="input-row">
+          <input type="email" id="email" placeholder="you@studio.com" required>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="input-row">
+          <input type="password" id="password" placeholder="••••••••••••" required>
+          <button type="button" class="toggle-pw" id="toggle-pw">Show</button>
+        </div>
+      </div>
+
+      <div class="row-between">
+        <label class="remember" id="remember-toggle">
+          <span class="checkbox" id="checkbox-box">
+            <svg viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="var(--paper)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          Stay signed in
+        </label>
+        <a href="#" class="forgot">Forgot password</a>
+      </div>
+
+      <button type="submit" class="btn-primary" id="submit-btn">Sign in</button>
+
+      <div class="meter">
+        <span>ISO <b id="iso-val">400</b></span>
+        <span>ƒ/<b id="ap-val">2.8</b></span>
+        <span>1/<b id="sh-val">125</b>s</span>
+      </div>
+    </form>
+  </div>
+
+  <div class="perf-row bottom">
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+</div>
+
+<script>
+  const root = document.documentElement;
+  const toggleBtn = document.getElementById('theme-toggle');
+
+  function setTheme(theme){
+    root.setAttribute('data-theme', theme);
+    document.getElementById('iso-val').textContent = theme === 'dark' ? '3200' : '400';
+    document.getElementById('ap-val').textContent = theme === 'dark' ? '1.4' : '2.8';
+    document.getElementById('sh-val').textContent = theme === 'dark' ? '30' : '125';
+  }
+
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  setTheme(prefersDark ? 'dark' : 'light');
+
+  toggleBtn.addEventListener('click', () => {
+    const current = root.getAttribute('data-theme');
+    setTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  // password visibility
+  const pwInput = document.getElementById('password');
+  const pwToggle = document.getElementById('toggle-pw');
+  pwToggle.addEventListener('click', () => {
+    const isPw = pwInput.type === 'password';
+    pwInput.type = isPw ? 'text' : 'password';
+    pwToggle.textContent = isPw ? 'Hide' : 'Show';
+  });
+
+  // remember checkbox
+  const rememberToggle = document.getElementById('remember-toggle');
+  const checkboxBox = document.getElementById('checkbox-box');
+  rememberToggle.addEventListener('click', (e) => {
+    e.preventDefault();
+    checkboxBox.classList.toggle('checked');
+  });
+
+  // submit demo state
+  document.getElementById('login-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submit-btn');
+    const original = btn.textContent;
+    btn.textContent = 'Developing…';
+    btn.style.opacity = '0.7';
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.style.opacity = '1';
+    }, 1400);
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CORTEX // Auth Module</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Fira+Code:wght@400;500&family=Chakra+Petch:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#05060c;
+    --cyan:#00f0ff;
+    --cyan-dim: rgba(0,240,255,0.35);
+    --cyan-faint: rgba(0,240,255,0.08);
+    --magenta:#ff2e97;
+    --green:#39ff88;
+    --text-0:#dcf6ff;
+    --text-1:#7d93a8;
+    --text-2:#495568;
+    --ease: cubic-bezier(.16,.8,.24,1);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    background-color: var(--bg);
+    background-image:
+      linear-gradient(rgba(0,240,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,240,255,0.035) 1px, transparent 1px);
+    background-size: 42px 42px;
+    font-family:'Fira Code', monospace;
+    color: var(--text-0);
+    padding:24px;
+    position:relative;
+    overflow:hidden;
+  }
+  .glow{ position:fixed; border-radius:50%; filter:blur(120px); pointer-events:none; z-index:0; }
+  .glow--cyan{ width:38vw; height:38vw; left:-8vw; top:-10vw; background:var(--cyan); opacity:0.10; }
+  .glow--magenta{ width:34vw; height:34vw; right:-8vw; bottom:-10vw; background:var(--magenta); opacity:0.08; }
+  .vignette{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background: radial-gradient(120% 90% at 50% 50%, transparent 40%, rgba(5,6,12,0.85) 100%);
+  }
+
+  /* ================= Terminal card ================= */
+  .terminal{
+    position:relative; z-index:1;
+    width:100%; max-width:420px;
+    background: rgba(9,12,22,0.78);
+    border:1px solid var(--cyan-dim);
+    box-shadow: 0 0 0 1px rgba(0,240,255,0.06), 0 0 46px rgba(0,240,255,0.09), 0 26px 60px -24px rgba(0,0,0,0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    clip-path: polygon(0 16px, 16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+    padding:28px 30px 26px;
+    overflow:hidden;
+  }
+  .terminal::before{
+    content:"";
+    position:absolute; inset:0; z-index:0; pointer-events:none;
+    background: repeating-linear-gradient(rgba(255,255,255,0.028) 0px, rgba(255,255,255,0.028) 1px, transparent 1px, transparent 3px);
+    mix-blend-mode: overlay;
+  }
+  .scanbar{
+    position:absolute; left:0; right:0; height:38px; z-index:0; pointer-events:none;
+    background: linear-gradient(180deg, transparent, rgba(0,240,255,0.06), transparent);
+    animation: scanbar 5s linear infinite;
+  }
+  @keyframes scanbar{ from{ top:-38px; } to{ top:100%; } }
+
+  .titlebar{
+    position:relative; z-index:1;
+    display:flex; align-items:center; justify-content:space-between;
+    font-family:'Chakra Petch', monospace;
+    font-size:10.5px;
+    letter-spacing:0.1em;
+    color:var(--text-2);
+    margin-bottom:16px;
+    text-transform:uppercase;
+  }
+  .titlebar .status{ display:flex; align-items:center; gap:6px; color:var(--green); }
+  .titlebar .status .dot{
+    width:6px; height:6px; border-radius:50%; background:var(--green);
+    box-shadow:0 0 6px rgba(57,255,136,0.8);
+    animation: blink 2s ease-in-out infinite;
+  }
+  @keyframes blink{ 0%,100%{ opacity:1; } 50%{ opacity:0.35; } }
+
+  .bootlog{
+    position:relative; z-index:1;
+    font-size:11px;
+    line-height:1.7;
+    color:var(--cyan);
+    opacity:0.75;
+    min-height:56px;
+    margin-bottom:18px;
+    white-space:pre-wrap;
+  }
+  .bootlog .cursor{
+    display:inline-block; width:6px; height:12px;
+    background:var(--cyan); margin-left:2px;
+    vertical-align:-2px;
+    animation: blink 1s step-end infinite;
+  }
+
+  .radar{
+    position:relative; z-index:1;
+    width:64px; height:64px;
+    border-radius:50%;
+    margin:0 auto 18px;
+    border:1px solid var(--cyan-dim);
+    background: radial-gradient(circle, rgba(0,240,255,0.07), transparent 72%);
+  }
+  .radar::before{
+    content:""; position:absolute; inset:0; border-radius:50%;
+    background: conic-gradient(from 0deg, rgba(0,240,255,0.6), transparent 34deg);
+    animation: spin 3.4s linear infinite;
+  }
+  .radar::after{
+    content:""; position:absolute; inset:15px; border-radius:50%;
+    border:1px solid rgba(0,240,255,0.22);
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  .wordmark{
+    position:relative; z-index:1;
+    text-align:center;
+    font-family:'Rajdhani', sans-serif;
+    font-weight:700;
+    font-size:26px;
+    letter-spacing:0.08em;
+    margin:0 0 4px;
+  }
+  .glitch{ position:relative; display:inline-block; }
+  .glitch.active::before, .glitch.active::after{
+    content: attr(data-text);
+    position:absolute; left:0; top:0; width:100%; height:100%;
+  }
+  .glitch.active::before{
+    color:var(--magenta);
+    clip-path: polygon(0 0, 100% 0, 100% 42%, 0 42%);
+    transform:translate(-2px,-1px);
+  }
+  .glitch.active::after{
+    color:var(--cyan);
+    clip-path: polygon(0 58%, 100% 58%, 100% 100%, 0 100%);
+    transform:translate(2px,1px);
+  }
+
+  .tagline{
+    position:relative; z-index:1;
+    text-align:center;
+    font-size:11.5px;
+    letter-spacing:0.06em;
+    color:var(--text-1);
+    margin:0 0 24px;
+    font-family:'Chakra Petch', monospace;
+    text-transform:uppercase;
+  }
+
+  form{ position:relative; z-index:1; display:flex; flex-direction:column; gap:15px; }
+
+  .field label{
+    display:block;
+    font-family:'Chakra Petch', monospace;
+    font-size:10.5px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--text-1);
+    margin-bottom:8px;
+  }
+  .input-wrap{
+    display:flex; align-items:center; gap:8px;
+    border-bottom:1px solid var(--cyan-dim);
+    background: rgba(0,240,255,0.025);
+    padding:10px 10px;
+    transition: border-color .2s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease);
+  }
+  .input-wrap .prompt{ color:var(--cyan); font-size:13px; flex-shrink:0; }
+  .input-wrap input{
+    flex:1; min-width:0;
+    background:transparent; border:none; outline:none;
+    color:var(--text-0);
+    font-family:'Fira Code', monospace;
+    font-size:13.5px;
+  }
+  .input-wrap:focus-within{
+    border-bottom-color:var(--cyan);
+    background: rgba(0,240,255,0.05);
+    box-shadow: 0 4px 14px -8px rgba(0,240,255,0.6);
+  }
+  .pw-toggle{
+    background:none; border:none; cursor:pointer;
+    font-family:'Chakra Petch', monospace;
+    font-size:10.5px; letter-spacing:0.06em;
+    color:var(--text-1);
+    flex-shrink:0;
+    padding:2px 4px;
+    transition: color .2s var(--ease);
+  }
+  .pw-toggle:hover{ color:var(--magenta); }
+  .pw-toggle:focus-visible{ outline:1px solid var(--cyan); outline-offset:2px; }
+
+  .row-between{ display:flex; align-items:center; justify-content:space-between; font-size:12px; margin-top:1px; }
+  .remember{ display:flex; align-items:center; gap:8px; color:var(--text-1); cursor:pointer; user-select:none; }
+  .switch-track{
+    position:relative; width:32px; height:18px; border-radius:2px;
+    border:1px solid var(--cyan-dim); background:rgba(0,240,255,0.04); flex-shrink:0;
+  }
+  .switch-thumb{
+    position:absolute; top:2px; left:2px; width:12px; height:12px; border-radius:1px;
+    background:var(--text-2);
+    transition: transform .2s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease);
+  }
+  .remember input{ display:none; }
+  .remember input:checked ~ .switch-track .switch-thumb{
+    transform:translateX(14px); background:var(--cyan);
+    box-shadow:0 0 8px rgba(0,240,255,0.7);
+  }
+  .remember:focus-within .switch-track{ outline:1px solid var(--cyan); outline-offset:2px; }
+
+  .link{
+    color:var(--text-1); text-decoration:none;
+    border-bottom:1px solid transparent;
+    transition: color .2s var(--ease), border-color .2s var(--ease);
+  }
+  .link:hover{ color:var(--magenta); border-color:rgba(255,46,151,0.4); }
+  .link:focus-visible{ outline:1px solid var(--cyan); outline-offset:3px; }
+
+  .btn-primary{
+    position:relative; overflow:hidden;
+    margin-top:6px;
+    width:100%; padding:14px 18px;
+    background:transparent;
+    border:1px solid var(--cyan);
+    border-radius:4px;
+    color:var(--cyan);
+    font-family:'Rajdhani', sans-serif;
+    font-weight:700;
+    font-size:14.5px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    cursor:pointer;
+    transition: background .2s var(--ease), box-shadow .2s var(--ease), color .2s var(--ease);
+  }
+  .btn-primary:hover{ background:rgba(0,240,255,0.1); box-shadow:0 0 22px rgba(0,240,255,0.35), inset 0 0 20px rgba(0,240,255,0.08); }
+  .btn-primary:focus-visible{ outline:2px solid var(--cyan); outline-offset:3px; }
+  .btn-primary .bracket{ color:var(--cyan-dim); }
+  .btn-primary .scan{
+    position:absolute; top:0; bottom:0; left:-30%; width:30%;
+    background: linear-gradient(90deg, transparent, rgba(0,240,255,0.55), transparent);
+    display:none;
+  }
+  .btn-primary[data-loading="true"] .scan{ display:block; animation: scanmove 0.9s linear infinite; }
+  .btn-primary[data-loading="true"]{ pointer-events:none; }
+  .btn-primary[data-loading="true"] .btn-label::after{ content:"Authenticating"; }
+  .btn-primary[data-loading="false"] .btn-label::after{ content:"Initiate uplink"; }
+  @keyframes scanmove{ from{ left:-30%; } to{ left:100%; } }
+
+  .divider{
+    display:flex; align-items:center; gap:12px;
+    margin:22px 0 16px;
+    color:var(--text-2);
+    font-family:'Chakra Petch', monospace;
+    font-size:10px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+  }
+  .divider::before, .divider::after{ content:""; flex:1; height:1px; background:rgba(0,240,255,0.15); }
+
+  .altauth{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .alt-btn{
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    padding:13px 8px;
+    border:1px solid rgba(0,240,255,0.2);
+    border-radius:4px;
+    background: rgba(0,240,255,0.02);
+    color:var(--text-1);
+    font-family:'Chakra Petch', monospace;
+    font-size:10.5px;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    cursor:pointer;
+    transition: border-color .2s var(--ease), color .2s var(--ease), background .2s var(--ease);
+  }
+  .alt-btn:hover{ border-color:var(--magenta); color:var(--magenta); background:rgba(255,46,151,0.05); }
+  .alt-btn:focus-visible{ outline:1px solid var(--cyan); outline-offset:2px; }
+  .alt-btn svg{ width:18px; height:18px; }
+
+  .foot{
+    text-align:center; font-size:12px; color:var(--text-1);
+    margin-top:22px;
+    font-family:'Chakra Petch', monospace;
+    letter-spacing:0.03em;
+  }
+
+  .trust{
+    text-align:center; font-size:10.5px; color:var(--text-2);
+    margin-top:14px;
+    letter-spacing:0.02em;
+  }
+  .trust .cursor{
+    display:inline-block; width:6px; height:10px; background:var(--text-2);
+    margin-left:2px; vertical-align:-1px;
+    animation: blink 1s step-end infinite;
+  }
+
+  @media (max-width:440px){
+    .terminal{ padding:24px 20px 22px; }
+    .wordmark{ font-size:22px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition-duration:0.01ms !important; animation-duration:0.01ms !important; }
+    .radar::before{ animation:none; }
+    .scanbar{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="glow glow--cyan"></div>
+  <div class="glow glow--magenta"></div>
+  <div class="vignette"></div>
+
+  <div class="terminal">
+    <div class="scanbar"></div>
+
+    <div class="titlebar">
+      <span>Cortex_OS // Auth.Module</span>
+      <span class="status"><span class="dot"></span>Online</span>
+    </div>
+
+    <div class="bootlog" id="bootlog" aria-hidden="true"></div>
+
+    <div class="radar"></div>
+    <h1 class="wordmark glitch" id="glitchTitle" data-text="CORTEX">CORTEX</h1>
+    <p class="tagline">Neural interface — access module</p>
+
+    <form id="loginForm" novalidate>
+      <div class="field">
+        <label for="email">Email</label>
+        <div class="input-wrap">
+          <span class="prompt">&gt;</span>
+          <input type="email" id="email" autocomplete="email" required>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="row-between" style="margin-bottom:8px;">
+          <label for="password" style="margin-bottom:0;">Password</label>
+          <button type="button" class="pw-toggle" id="pwToggle" aria-pressed="false">SHOW</button>
+        </div>
+        <div class="input-wrap">
+          <span class="prompt">&gt;</span>
+          <input type="password" id="password" autocomplete="current-password" required>
+        </div>
+      </div>
+
+      <div class="row-between">
+        <label class="remember">
+          <input type="checkbox" id="remember">
+          <span class="switch-track"><span class="switch-thumb"></span></span>
+          Stay linked
+        </label>
+        <a href="#" class="link">Forgot password?</a>
+      </div>
+
+      <button type="submit" class="btn-primary" id="submitBtn" data-loading="false">
+        <span class="scan"></span>
+        <span class="bracket">[ </span><span class="btn-label"></span><span class="bracket"> ]</span>
+      </button>
+    </form>
+
+    <div class="divider">Alt auth methods</div>
+
+    <div class="altauth">
+      <button type="button" class="alt-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <path d="M12 2a5 5 0 0 0-5 5v2a5 5 0 0 0 10 0"/>
+          <path d="M12 2a5 5 0 0 1 5 5v2"/>
+          <path d="M7 11v2a5 5 0 0 0 10 0v-2"/>
+          <path d="M4 11v2a8 8 0 0 0 16 0v-2"/>
+          <path d="M12 16v4"/>
+        </svg>
+        Biometric
+      </button>
+      <button type="button" class="alt-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="8" cy="15" r="4"/>
+          <path d="M10.5 12.5 20 3M20 3h-4M20 3v4"/>
+        </svg>
+        Hardware key
+      </button>
+    </div>
+
+    <p class="foot">New operator? <a href="#" class="link">Request access</a></p>
+    <p class="trust">Connection encrypted — AES-256<span class="cursor"></span></p>
+  </div>
+
+<script>
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Boot log typewriter
+  const bootLines = [
+    '> initializing cortex os...',
+    '> neural link: stable',
+    '> awaiting credentials_'
+  ];
+  const bootEl = document.getElementById('bootlog');
+
+  function typeLines(lines, el, speed){
+    let li = 0, ci = 0;
+    el.textContent = '';
+    function step(){
+      if(li >= lines.length) return;
+      const line = lines[li];
+      if(ci <= line.length){
+        el.textContent = lines.slice(0, li).join('\n') + (li>0?'\n':'') + line.slice(0, ci);
+        ci++;
+        setTimeout(step, speed);
+      } else {
+        li++; ci = 0;
+        setTimeout(step, 180);
+      }
+    }
+    step();
+  }
+
+  if(reduceMotion){
+    bootEl.textContent = bootLines.join('\n');
+  } else {
+    typeLines(bootLines, bootEl, 22);
+  }
+
+  // Periodic RGB-glitch flicker on the wordmark
+  const glitchTitle = document.getElementById('glitchTitle');
+  if(!reduceMotion){
+    setInterval(() => {
+      glitchTitle.classList.add('active');
+      setTimeout(() => glitchTitle.classList.remove('active'), 160);
+    }, 4800);
+  }
+
+  // Password visibility toggle
+  const pwInput = document.getElementById('password');
+  const pwToggle = document.getElementById('pwToggle');
+  pwToggle.addEventListener('click', () => {
+    const isPw = pwInput.type === 'password';
+    pwInput.type = isPw ? 'text' : 'password';
+    pwToggle.textContent = isPw ? 'HIDE' : 'SHOW';
+    pwToggle.setAttribute('aria-pressed', String(isPw));
+  });
+
+  // Demo submit state — swap for a real request
+  const form = document.getElementById('loginForm');
+  const submitBtn = document.getElementById('submitBtn');
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (submitBtn.dataset.loading === 'true') return;
+    submitBtn.dataset.loading = 'true';
+    setTimeout(() => { submitBtn.dataset.loading = 'false'; }, 1900);
+  });
+</script>
+</body>
+</html>
