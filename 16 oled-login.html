@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign in — OLED</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --black: #000000;
+    --surface: #0a0a0a;
+    --surface-2: #0f0f0f;
+    --line: #1c1c1c;
+    --line-bright: #2c2c2c;
+    --text: #f2f2f0;
+    --text-dim: #7a7a78;
+    --text-dimmer: #4a4a48;
+    --accent: #ff7a1a;
+    --accent-soft: rgba(255,122,26,0.12);
+    --accent-glow: rgba(255,122,26,0.35);
+    --mono: 'JetBrains Mono', monospace;
+    --display: 'Space Grotesk', sans-serif;
+    --body: 'Inter', sans-serif;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  html,body{
+    background:var(--black);
+    color:var(--text);
+    font-family:var(--body);
+    height:100%;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; }
+  }
+
+  .stage{
+    min-height:100vh;
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* ===== LEFT — instrument panel ===== */
+  .panel{
+    position:relative;
+    background:var(--black);
+    border-right:1px solid var(--line);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    padding:48px 56px;
+  }
+
+  #grid-canvas{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    z-index:0;
+  }
+
+  .panel > *{ position:relative; z-index:1; }
+
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+
+  .brand-mark{
+    width:9px;
+    height:9px;
+    background:var(--accent);
+    box-shadow:0 0 12px 2px var(--accent-glow);
+    border-radius:1px;
+  }
+
+  .brand-name{
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+  }
+
+  .panel-hero{
+    max-width:460px;
+  }
+
+  .panel-eyebrow{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin-bottom:22px;
+    display:flex;
+    align-items:center;
+    gap:9px;
+  }
+
+  .panel-eyebrow::before{
+    content:'';
+    width:14px;
+    height:1px;
+    background:var(--accent);
+  }
+
+  .panel-title{
+    font-family:var(--display);
+    font-weight:600;
+    font-size:clamp(34px, 3.4vw, 46px);
+    line-height:1.08;
+    letter-spacing:-0.02em;
+    color:var(--text);
+  }
+
+  .panel-title em{
+    font-style:normal;
+    color:var(--text-dimmer);
+  }
+
+  .panel-sub{
+    margin-top:18px;
+    font-size:14.5px;
+    line-height:1.6;
+    color:var(--text-dim);
+    max-width:380px;
+  }
+
+  /* spec readout — the signature element */
+  .readout{
+    font-family:var(--mono);
+    font-size:12px;
+    line-height:2.05;
+    color:var(--text-dimmer);
+    border-top:1px solid var(--line);
+    padding-top:20px;
+    max-width:420px;
+  }
+
+  .readout-row{
+    display:flex;
+    justify-content:space-between;
+    gap:24px;
+  }
+
+  .readout-row .k{ color:var(--text-dim); }
+  .readout-row .v{ color:var(--text); }
+  .readout-row .v.accent{ color:var(--accent); }
+
+  .cursor-blink{
+    display:inline-block;
+    width:6px;
+    height:11px;
+    background:var(--accent);
+    margin-left:2px;
+    animation:blink 1s steps(1) infinite;
+    vertical-align:-1px;
+  }
+
+  @keyframes blink{
+    0%,49%{ opacity:1; }
+    50%,100%{ opacity:0; }
+  }
+
+  /* ===== RIGHT — form ===== */
+  .form-side{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:48px;
+    background:var(--black);
+  }
+
+  .form-wrap{
+    width:100%;
+    max-width:380px;
+  }
+
+  .form-eyebrow{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    margin-bottom:14px;
+  }
+
+  .form-title{
+    font-family:var(--display);
+    font-weight:600;
+    font-size:28px;
+    letter-spacing:-0.01em;
+    margin-bottom:8px;
+  }
+
+  .form-meta{
+    font-size:14px;
+    color:var(--text-dim);
+    margin-bottom:38px;
+  }
+
+  .form-meta a{
+    color:var(--text);
+    text-decoration:none;
+    border-bottom:1px solid var(--line-bright);
+    transition:border-color .15s ease, color .15s ease;
+  }
+  .form-meta a:hover{ color:var(--accent); border-color:var(--accent); }
+
+  .field{
+    margin-bottom:26px;
+    position:relative;
+  }
+
+  .field-label{
+    display:block;
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    margin-bottom:10px;
+    transition:color .15s ease;
+  }
+
+  .field-input-row{
+    position:relative;
+    display:flex;
+    align-items:center;
+  }
+
+  .field input{
+    width:100%;
+    background:transparent;
+    border:none;
+    border-bottom:1px solid var(--line);
+    color:var(--text);
+    font-family:var(--body);
+    font-size:15.5px;
+    padding:10px 2px 12px;
+    outline:none;
+    transition:border-color .2s ease;
+  }
+
+  .field input::placeholder{ color:var(--text-dimmer); }
+
+  .field-underline{
+    position:absolute;
+    left:0; bottom:-1px;
+    height:1px;
+    width:0%;
+    background:var(--accent);
+    box-shadow:0 0 8px 0 var(--accent-glow);
+    transition:width .3s cubic-bezier(.4,0,.2,1);
+  }
+
+  .field:focus-within .field-underline{ width:100%; }
+  .field:focus-within .field-label{ color:var(--accent); }
+
+  .toggle-visibility{
+    position:absolute;
+    right:2px;
+    background:none;
+    border:none;
+    color:var(--text-dimmer);
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    cursor:pointer;
+    padding:6px 0;
+    transition:color .15s ease;
+  }
+  .toggle-visibility:hover{ color:var(--text); }
+
+  .row-between{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:32px;
+    font-size:13px;
+  }
+
+  .remember{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    color:var(--text-dim);
+    cursor:pointer;
+    user-select:none;
+  }
+
+  .checkbox{
+    width:14px;
+    height:14px;
+    border:1px solid var(--line-bright);
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    transition:border-color .15s ease, background .15s ease;
+    flex-shrink:0;
+  }
+
+  .checkbox.checked{
+    background:var(--accent);
+    border-color:var(--accent);
+  }
+  .checkbox svg{ width:9px; height:9px; opacity:0; transition:opacity .1s ease; }
+  .checkbox.checked svg{ opacity:1; }
+
+  .forgot{
+    color:var(--text-dim);
+    text-decoration:none;
+    border-bottom:1px solid transparent;
+    transition:color .15s ease, border-color .15s ease;
+  }
+  .forgot:hover{ color:var(--text); border-color:var(--line-bright); }
+
+  .btn-primary{
+    width:100%;
+    background:var(--accent);
+    color:#000;
+    border:none;
+    font-family:var(--body);
+    font-weight:600;
+    font-size:14.5px;
+    padding:15px 0;
+    cursor:pointer;
+    letter-spacing:0.01em;
+    position:relative;
+    overflow:hidden;
+    transition:box-shadow .2s ease, transform .1s ease;
+  }
+
+  .btn-primary:hover{ box-shadow:0 0 24px 0 var(--accent-glow); }
+  .btn-primary:active{ transform:scale(0.99); }
+
+  .divider{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin:30px 0;
+    color:var(--text-dimmer);
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+  }
+  .divider::before, .divider::after{
+    content:'';
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+
+  .sso-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+
+  .btn-sso{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:9px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    color:var(--text);
+    font-size:13.5px;
+    padding:12px 0;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .btn-sso:hover{ border-color:var(--line-bright); background:var(--surface-2); }
+  .btn-sso svg{ width:15px; height:15px; }
+
+  .form-footer{
+    margin-top:36px;
+    font-size:13.5px;
+    color:var(--text-dim);
+    text-align:center;
+  }
+  .form-footer a{
+    color:var(--text);
+    text-decoration:none;
+    border-bottom:1px solid var(--line-bright);
+  }
+  .form-footer a:hover{ color:var(--accent); border-color:var(--accent); }
+
+  @media (max-width: 900px){
+    .stage{ grid-template-columns:1fr; }
+    .panel{
+      border-right:none;
+      border-bottom:1px solid var(--line);
+      padding:36px 28px;
+      min-height:280px;
+    }
+    .form-side{ padding:40px 28px 64px; }
+    .readout{ display:none; }
+  }
+
+  :focus-visible{
+    outline:1px solid var(--accent);
+    outline-offset:3px;
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <!-- LEFT: instrument panel -->
+  <section class="panel">
+    <canvas id="grid-canvas"></canvas>
+
+    <div class="brand">
+      <span class="brand-mark"></span>
+      <span class="brand-name">Noctis Panel Systems</span>
+    </div>
+
+    <div class="panel-hero">
+      <div class="panel-eyebrow">Calibrated for true black</div>
+      <h1 class="panel-title">Every pixel<br><em>off</em> until you<br>need it.</h1>
+      <p class="panel-sub">Sign in to manage display profiles, calibration presets, and panel diagnostics across your OLED fleet.</p>
+    </div>
+
+    <div class="readout" id="readout">
+      <div class="readout-row"><span class="k">PANEL_TYPE</span><span class="v">OLED / SELF-EMISSIVE</span></div>
+      <div class="readout-row"><span class="k">BLACK_LEVEL</span><span class="v accent">0.0000 cd/m²</span></div>
+      <div class="readout-row"><span class="k">CONTRAST_RATIO</span><span class="v">∞ : 1</span></div>
+      <div class="readout-row"><span class="k">SESSION</span><span class="v" id="session-clock">00:00:00<span class="cursor-blink"></span></span></div>
+    </div>
+  </section>
+
+  <!-- RIGHT: form -->
+  <section class="form-side">
+    <div class="form-wrap">
+      <div class="form-eyebrow">Access · 002</div>
+      <h2 class="form-title">Welcome back</h2>
+      <p class="form-meta">New to Noctis? <a href="#">Request an account</a></p>
+
+      <form id="login-form" autocomplete="off">
+        <div class="field">
+          <label class="field-label" for="email">Email</label>
+          <div class="field-input-row">
+            <input type="email" id="email" name="email" placeholder="you@company.com" required>
+          </div>
+          <div class="field-underline"></div>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="password">Password</label>
+          <div class="field-input-row">
+            <input type="password" id="password" name="password" placeholder="••••••••••••" required>
+            <button type="button" class="toggle-visibility" id="toggle-pw">Show</button>
+          </div>
+          <div class="field-underline"></div>
+        </div>
+
+        <div class="row-between">
+          <label class="remember" id="remember-toggle">
+            <span class="checkbox" id="checkbox-box">
+              <svg viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="black" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            Stay signed in
+          </label>
+          <a href="#" class="forgot">Forgot password</a>
+        </div>
+
+        <button type="submit" class="btn-primary">Sign in</button>
+
+        <div class="divider">or continue with</div>
+
+        <div class="sso-row">
+          <button type="button" class="btn-sso">
+            <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09z"/><path fill="currentColor" d="M15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.817-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.56-1.7z"/></svg>
+            Apple
+          </button>
+          <button type="button" class="btn-sso">
+            <svg viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12s3.36-7.27 7.19-7.27c3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.19 2C6.42 2 1.94 6.8 1.94 12s4.48 10 10.25 10c5.1 0 9.55-3.68 9.55-10 0-.36-.05-.9-.05-.9z"/></svg>
+            Google
+          </button>
+        </div>
+      </form>
+
+      <p class="form-footer">Trouble signing in? <a href="#">Contact support</a></p>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  // ---- reactive OLED subpixel grid ----
+  const canvas = document.getElementById('grid-canvas');
+  const ctx = canvas.getContext('2d');
+  const panel = document.querySelector('.panel');
+  let w, h, dots = [];
+  let mouse = { x: -9999, y: -9999 };
+
+  function resize(){
+    w = canvas.width = panel.clientWidth;
+    h = canvas.height = panel.clientHeight;
+    dots = [];
+    const gap = 26;
+    for(let x = gap/2; x < w; x += gap){
+      for(let y = gap/2; y < h; y += gap){
+        dots.push({ x, y });
+      }
+    }
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,w,h);
+    for(const d of dots){
+      const dist = Math.hypot(d.x - mouse.x, d.y - mouse.y);
+      const influence = Math.max(0, 1 - dist / 220);
+      const alpha = 0.05 + influence * 0.5;
+      const r = 1 + influence * 1.1;
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, r, 0, Math.PI * 2);
+      if(influence > 0.05){
+        ctx.fillStyle = `rgba(255,122,26,${alpha})`;
+      } else {
+        ctx.fillStyle = `rgba(255,255,255,${alpha * 0.4})`;
+      }
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+
+  panel.addEventListener('mousemove', (e) => {
+    const rect = panel.getBoundingClientRect();
+    mouse.x = e.clientX - rect.left;
+    mouse.y = e.clientY - rect.top;
+  });
+  panel.addEventListener('mouseleave', () => { mouse.x = -9999; mouse.y = -9999; });
+
+  window.addEventListener('resize', resize);
+  resize();
+  draw();
+
+  // ---- session clock ----
+  let seconds = 0;
+  const clockEl = document.getElementById('session-clock');
+  setInterval(() => {
+    seconds++;
+    const h = String(Math.floor(seconds/3600)).padStart(2,'0');
+    const m = String(Math.floor((seconds%3600)/60)).padStart(2,'0');
+    const s = String(seconds%60).padStart(2,'0');
+    clockEl.innerHTML = `${h}:${m}:${s}<span class="cursor-blink"></span>`;
+  }, 1000);
+
+  // ---- password visibility ----
+  const pwInput = document.getElementById('password');
+  const toggleBtn = document.getElementById('toggle-pw');
+  toggleBtn.addEventListener('click', () => {
+    const isPw = pwInput.type === 'password';
+    pwInput.type = isPw ? 'text' : 'password';
+    toggleBtn.textContent = isPw ? 'Hide' : 'Show';
+  });
+
+  // ---- remember checkbox ----
+  const rememberToggle = document.getElementById('remember-toggle');
+  const checkboxBox = document.getElementById('checkbox-box');
+  rememberToggle.addEventListener('click', (e) => {
+    e.preventDefault();
+    checkboxBox.classList.toggle('checked');
+  });
+
+  // ---- form submit (demo) ----
+  document.getElementById('login-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const btn = e.target.querySelector('.btn-primary');
+    const original = btn.textContent;
+    btn.textContent = 'Signing in…';
+    btn.style.opacity = '0.7';
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.style.opacity = '1';
+    }, 1400);
+  });
+</script>
+
+</body>
+</html>

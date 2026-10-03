@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cadence — Welcome back to the session</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --dark:#0e0c12;
+    --dark-1:#151220;
+    --field:rgba(255,255,255,0.045);
+    --field-border:rgba(255,255,255,0.09);
+    --text-0:#f3f1f5;
+    --text-1:#948f9f;
+    --text-2:#615c6c;
+    --amber:#ffb020;
+    --magenta:#ff3d81;
+    --accent:#ff5c74;
+    --live:#3ddc84;
+    --ease: cubic-bezier(.16,.8,.24,1);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    color: var(--text-0);
+    background: var(--dark);
+  }
+
+  .stage{
+    min-height:100vh;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+  }
+
+  /* ================= LEFT — sign-in ================= */
+  .auth-panel{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:48px 40px;
+    position:relative;
+  }
+  .chan-tag{
+    position:absolute;
+    top:32px; left:40px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--text-2);
+  }
+  .auth-inner{ width:100%; max-width:376px; }
+
+  .wordmark{
+    display:flex; align-items:center; gap:9px;
+    font-family:'Sora', sans-serif;
+    font-weight:700;
+    font-size:18px;
+    margin-bottom:34px;
+  }
+  .wordmark .dot{
+    width:9px; height:9px; border-radius:50%;
+    background: linear-gradient(135deg, var(--amber), var(--magenta));
+    box-shadow: 0 0 10px rgba(255,61,129,0.6);
+  }
+
+  h1{
+    font-family:'Sora', sans-serif;
+    font-weight:600;
+    font-size:27px;
+    letter-spacing:-0.01em;
+    line-height:1.2;
+    margin:0 0 10px;
+  }
+  .sub{
+    font-size:14px;
+    color:var(--text-1);
+    line-height:1.55;
+    margin:0 0 30px;
+  }
+
+  form{ display:flex; flex-direction:column; gap:15px; }
+
+  .field{ position:relative; }
+  .field label{
+    display:block;
+    font-size:12.5px;
+    font-weight:500;
+    color:var(--text-1);
+    margin:0 0 7px 2px;
+  }
+  .field input{
+    width:100%;
+    padding:13px 14px;
+    background: var(--field);
+    border:1px solid var(--field-border);
+    border-radius:12px;
+    color:var(--text-0);
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-size:14.5px;
+    outline:none;
+    transition: border-color .2s var(--ease), box-shadow .2s var(--ease), background .2s var(--ease);
+  }
+  .field input:focus{
+    border-color: var(--accent);
+    background: rgba(255,255,255,0.065);
+    box-shadow: 0 0 0 3px rgba(255,92,116,0.16);
+  }
+  .field--pw input{ padding-right:44px; }
+  .pw-toggle{
+    position:absolute; right:10px; bottom:10px;
+    width:28px; height:28px;
+    display:flex; align-items:center; justify-content:center;
+    background:none; border:none; cursor:pointer;
+    color:var(--text-2);
+    border-radius:8px;
+    transition: color .2s var(--ease);
+  }
+  .pw-toggle:hover{ color:var(--text-0); }
+  .pw-toggle:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .pw-toggle svg{ width:17px; height:17px; }
+
+  .row-between{ display:flex; align-items:center; justify-content:space-between; margin-top:1px; }
+  .remember{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-1); cursor:pointer; user-select:none; }
+  .remember input{
+    appearance:none; -webkit-appearance:none;
+    width:15px; height:15px;
+    border-radius:5px;
+    border:1px solid var(--field-border);
+    background: var(--field);
+    display:grid; place-content:center;
+    cursor:pointer;
+  }
+  .remember input::before{
+    content:"";
+    width:8px; height:8px;
+    border-radius:2px;
+    transform:scale(0);
+    transition: transform .15s var(--ease);
+    background: linear-gradient(135deg, var(--amber), var(--magenta));
+  }
+  .remember input:checked{ border-color:transparent; }
+  .remember input:checked::before{ transform:scale(1); }
+  .remember input:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  .link{
+    font-size:13px; color:var(--text-1); text-decoration:none;
+    border-bottom:1px solid transparent;
+    transition: color .2s var(--ease), border-color .2s var(--ease);
+  }
+  .link:hover{ color:var(--text-0); border-color:var(--field-border); }
+  .link:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; border-radius:2px; }
+
+  .btn-primary{
+    margin-top:5px;
+    width:100%;
+    padding:14px 18px;
+    border:none;
+    border-radius:12px;
+    background: linear-gradient(135deg, var(--amber), var(--magenta));
+    color:#150a10;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-weight:700;
+    font-size:14.5px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    box-shadow: 0 14px 28px -12px rgba(255,61,129,0.55);
+    transition: transform .2s var(--ease), box-shadow .2s var(--ease), filter .2s var(--ease);
+  }
+  .btn-primary:hover{ transform:translateY(-1px); filter:brightness(1.06); }
+  .btn-primary:focus-visible{ outline:2px solid var(--text-0); outline-offset:3px; }
+  .btn-primary .dots{ display:none; gap:3px; }
+  .btn-primary .dots span{
+    width:4px; height:4px; border-radius:50%; background:#150a10;
+    animation: bounce 1s var(--ease) infinite;
+  }
+  .btn-primary .dots span:nth-child(2){ animation-delay:.15s; }
+  .btn-primary .dots span:nth-child(3){ animation-delay:.3s; }
+  @keyframes bounce{ 0%,100%{ opacity:.3; transform:translateY(0); } 50%{ opacity:1; transform:translateY(-3px); } }
+  .btn-primary[data-loading="true"] .dots{ display:flex; }
+  .btn-primary[data-loading="true"] .btn-label::after{ content:"Connecting"; }
+  .btn-primary[data-loading="false"] .btn-label::after{ content:"Sign in"; }
+
+  .divider{
+    display:flex; align-items:center; gap:12px;
+    margin:22px 0 16px;
+    color:var(--text-2);
+    font-size:11.5px;
+    letter-spacing:0.08em;
+  }
+  .divider::before, .divider::after{ content:""; flex:1; height:1px; background:var(--field-border); }
+
+  .oauth{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .oauth-btn{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    padding:11px 10px;
+    border-radius:12px;
+    border:1px solid var(--field-border);
+    background: var(--field);
+    color:var(--text-0);
+    font-size:13px;
+    font-weight:500;
+    cursor:pointer;
+    transition: background .2s var(--ease), border-color .2s var(--ease), transform .2s var(--ease);
+  }
+  .oauth-btn:hover{ background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); transform:translateY(-1px); }
+  .oauth-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .oauth-btn svg{ width:15px; height:15px; flex-shrink:0; }
+
+  .foot{ text-align:center; font-size:13px; color:var(--text-1); margin-top:22px; }
+  .trust{ text-align:center; font-size:12px; color:var(--text-2); margin-top:14px; }
+
+  /* ================= RIGHT — live visualizer ================= */
+  .visual-panel{
+    position:relative;
+    overflow:hidden;
+    background:
+      radial-gradient(60% 50% at 50% 45%, rgba(255,61,129,0.12), transparent 70%),
+      var(--dark-1);
+  }
+  #viz{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+
+  .chan-tag--r{
+    position:absolute; top:32px; right:40px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--text-2);
+    z-index:2;
+  }
+
+  .now-card{
+    position:absolute;
+    left:40px; right:40px; bottom:36px;
+    z-index:2;
+    display:flex; align-items:center; gap:14px;
+    padding:14px 16px;
+    border-radius:16px;
+    background: rgba(14,12,18,0.55);
+    border:1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  .now-card__art{
+    width:46px; height:46px;
+    border-radius:10px;
+    flex-shrink:0;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(255,255,255,0.35), transparent 45%),
+      linear-gradient(135deg, var(--amber), var(--magenta));
+    position:relative;
+  }
+  .now-card__body{ flex:1; min-width:0; }
+  .now-card__title{ font-size:13.5px; font-weight:600; margin:0 0 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .now-card__artist{ font-size:12px; color:var(--text-1); margin:0 0 8px; }
+  .now-card__scrub{ height:3px; border-radius:2px; background: rgba(255,255,255,0.12); position:relative; overflow:hidden; }
+  .now-card__scrub::after{
+    content:""; position:absolute; left:0; top:0; bottom:0; width:54%;
+    background: linear-gradient(90deg, var(--amber), var(--magenta));
+    border-radius:2px;
+  }
+  .now-card__live{
+    display:flex; align-items:center; gap:6px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    letter-spacing:0.06em;
+    color:var(--text-1);
+    flex-shrink:0;
+  }
+  .now-card__live .pulse{
+    width:6px; height:6px; border-radius:50%;
+    background: var(--live);
+    box-shadow: 0 0 0 0 rgba(61,220,132,0.6);
+    animation: pulse 1.8s var(--ease) infinite;
+  }
+  @keyframes pulse{
+    0%{ box-shadow: 0 0 0 0 rgba(61,220,132,0.55); }
+    70%{ box-shadow: 0 0 0 7px rgba(61,220,132,0); }
+    100%{ box-shadow: 0 0 0 0 rgba(61,220,132,0); }
+  }
+
+  /* ================= Responsive ================= */
+  @media (max-width: 940px){
+    .stage{ grid-template-columns:1fr; grid-template-rows:220px 1fr; }
+    .visual-panel{ order:-1; }
+    .chan-tag, .chan-tag--r{ top:16px; }
+    .now-card{ left:20px; right:20px; bottom:16px; padding:11px 13px; }
+    .now-card__artist{ margin-bottom:6px; }
+    .auth-panel{ padding:40px 26px; }
+  }
+  @media (max-width: 460px){
+    .now-card__live{ display:none; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition-duration:0.01ms !important; animation-duration:0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="stage">
+
+    <!-- LEFT: sign-in -->
+    <div class="auth-panel">
+      <span class="chan-tag">Ch. L — Sign in</span>
+      <div class="auth-inner">
+        <div class="wordmark"><span class="dot"></span>Cadence</div>
+        <h1>Welcome back to the session</h1>
+        <p class="sub">Sign in to pick up your tracks where you left off.</p>
+
+        <form id="loginForm" novalidate>
+          <div class="field">
+            <label for="email">Email</label>
+            <input type="email" id="email" autocomplete="email" required>
+          </div>
+
+          <div class="field field--pw">
+            <label for="password">Password</label>
+            <input type="password" id="password" autocomplete="current-password" required>
+            <button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password" aria-pressed="false">
+              <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="row-between">
+            <label class="remember">
+              <input type="checkbox" id="remember">
+              Remember me
+            </label>
+            <a href="#" class="link">Forgot password?</a>
+          </div>
+
+          <button type="submit" class="btn-primary" id="submitBtn" data-loading="false">
+            <span class="btn-label"></span>
+            <span class="dots"><span></span><span></span><span></span></span>
+          </button>
+        </form>
+
+        <div class="divider">OR CONTINUE WITH</div>
+
+        <div class="oauth">
+          <button type="button" class="oauth-btn">
+            <svg viewBox="0 0 24 24"><path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.4-1.7 4.1-5.5 4.1-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.9 1.5l2.6-2.5C16.9 3.4 14.7 2.4 12 2.4 6.9 2.4 2.7 6.6 2.7 11.7S6.9 21 12 21c6.9 0 9.3-4.8 9.3-7.3 0-.5 0-.9-.1-1.3H12z"/></svg>
+            Google
+          </button>
+          <button type="button" class="oauth-btn">
+            <svg viewBox="0 0 24 24"><path fill="#5865F2" d="M20.3 5.4A17.6 17.6 0 0 0 15.9 4c-.2.4-.4.9-.6 1.3a16.6 16.6 0 0 0-4.6 0c-.2-.4-.4-.9-.6-1.3-1.5.3-3 .8-4.4 1.4C3 9 2.3 12.6 2.6 16.1a17.7 17.7 0 0 0 5.4 2.7c.4-.6.8-1.2 1.1-1.9-.6-.2-1.2-.5-1.7-.9l.4-.3a12.6 12.6 0 0 0 10.4 0l.4.3c-.5.4-1.1.7-1.7.9.3.7.7 1.3 1.1 1.9a17.6 17.6 0 0 0 5.4-2.7c.4-4-.6-7.6-2.7-10.7ZM9.7 13.9c-.8 0-1.5-.8-1.5-1.7 0-1 .6-1.7 1.5-1.7s1.5.8 1.5 1.7c0 1-.7 1.7-1.5 1.7Zm5.6 0c-.8 0-1.5-.8-1.5-1.7 0-1 .6-1.7 1.5-1.7s1.5.8 1.5 1.7c0 1-.6 1.7-1.5 1.7Z"/></svg>
+            Discord
+          </button>
+        </div>
+
+        <p class="foot">New here? <a href="#" class="link">Create your studio</a></p>
+        <p class="trust">Your session is encrypted and private.</p>
+      </div>
+    </div>
+
+    <!-- RIGHT: live visualizer -->
+    <div class="visual-panel">
+      <canvas id="viz"></canvas>
+      <span class="chan-tag--r">Ch. R — Live session</span>
+
+      <div class="now-card">
+        <div class="now-card__art"></div>
+        <div class="now-card__body">
+          <p class="now-card__title">Session 42 — Half Light</p>
+          <p class="now-card__artist">Nadia Cole</p>
+          <div class="now-card__scrub"></div>
+        </div>
+        <div class="now-card__live"><span class="pulse"></span>3 online</div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+  // Password visibility toggle
+  const pwInput = document.getElementById('password');
+  const pwToggle = document.getElementById('pwToggle');
+  const eyeIcon = document.getElementById('eyeIcon');
+  const eyeOff = `<path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.3 20.3 0 0 1 5.06-5.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a20.5 20.5 0 0 1-3.22 4.42M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>`;
+  const eyeOn = `<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>`;
+  pwToggle.addEventListener('click', () => {
+    const isPw = pwInput.type === 'password';
+    pwInput.type = isPw ? 'text' : 'password';
+    pwToggle.setAttribute('aria-pressed', String(isPw));
+    pwToggle.setAttribute('aria-label', isPw ? 'Hide password' : 'Show password');
+    eyeIcon.innerHTML = isPw ? eyeOff : eyeOn;
+  });
+
+  // Demo submit state — swap for a real request
+  const form = document.getElementById('loginForm');
+  const submitBtn = document.getElementById('submitBtn');
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (submitBtn.dataset.loading === 'true') return;
+    submitBtn.dataset.loading = 'true';
+    setTimeout(() => { submitBtn.dataset.loading = 'false'; }, 1900);
+  });
+
+  // Live spectrum visualizer — the split literally reads as a stereo field (L / R)
+  const canvas = document.getElementById('viz');
+  const ctx = canvas.getContext('2d');
+  const panel = document.querySelector('.visual-panel');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let W, H, DPR;
+  function resize(){
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = panel.clientWidth; H = panel.clientHeight;
+    canvas.width = W * DPR; canvas.height = H * DPR;
+    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const BARS = 56;
+  let mouseX = -1;
+  panel.addEventListener('mousemove', (e) => {
+    const r = panel.getBoundingClientRect();
+    mouseX = e.clientX - r.left;
+  });
+  panel.addEventListener('mouseleave', () => { mouseX = -1; });
+
+  function ampFor(i, t){
+    const base =
+      Math.sin(i * 0.35 + t * 1.3) * 0.5 +
+      Math.sin(i * 0.12 - t * 0.7) * 0.35 +
+      Math.sin(i * 0.6 + t * 2.1) * 0.15;
+    let a = (base + 1) / 2; // 0..1
+    if (mouseX >= 0){
+      const barX = (i + 0.5) / BARS * W;
+      const dist = Math.abs(barX - mouseX);
+      const boost = Math.max(0, 1 - dist / 140);
+      a = Math.min(1, a + boost * 0.5);
+    }
+    return a;
+  }
+
+  function draw(t){
+    ctx.clearRect(0,0,W,H);
+    const gap = 6;
+    const barW = (W - gap * (BARS - 1)) / BARS;
+    const midY = H * 0.5;
+    for (let i = 0; i < BARS; i++){
+      const a = ampFor(i, t);
+      const h = 10 + a * (H * 0.32);
+      const x = i * (barW + gap);
+      const grad = ctx.createLinearGradient(0, midY - h, 0, midY + h);
+      grad.addColorStop(0, '#ffb020');
+      grad.addColorStop(1, '#ff3d81');
+      ctx.fillStyle = grad;
+      ctx.globalAlpha = 0.85;
+      roundRect(x, midY - h, barW, h * 2, barW / 2);
+      ctx.fill();
+    }
+  }
+
+  function roundRect(x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+  }
+
+  if (reduceMotion){
+    draw(0.6); // single static, pleasant frame
+  } else {
+    function loop(ts){
+      draw(ts / 1000);
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  }
+</script>
+</body>
+</html>
