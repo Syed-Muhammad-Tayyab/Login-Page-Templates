@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vantage — Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4f5f8;
+    --ink:#111318;
+    --muted:#6b7280;
+    --muted-2:#9aa1ae;
+    --accent:#4f46e5;
+    --accent-dark:#4338ca;
+    --accent-soft:rgba(79,70,229,0.09);
+    --green:#16a34a;
+    --amber:#d97706;
+    --card:#ffffff;
+    --field:#f4f5f7;
+    --field-border:#e3e5ea;
+    --line: rgba(17,19,24,0.08);
+    --ease: cubic-bezier(.16,.8,.24,1);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    background: var(--bg);
+    font-family:'Inter', sans-serif;
+    color: var(--ink);
+  }
+
+  /* ================= Background: blurred live dashboard ================= */
+  .dash{
+    position:fixed; inset:0; z-index:0;
+    display:grid; grid-template-columns:216px 1fr;
+    background:#fff;
+    filter: blur(2.5px) brightness(0.95);
+    transform: scale(1.02);
+  }
+  .dash__scrim{ position:fixed; inset:0; z-index:1; background: rgba(17,19,24,0.5); }
+
+  .dash__side{ background:#0f1117; padding:22px 16px; }
+  .dash__logo{ width:22px; height:22px; border-radius:6px; background:var(--accent); margin-bottom:26px; }
+  .dash__nav div{ height:9px; border-radius:4px; background:rgba(255,255,255,0.14); margin-bottom:16px; }
+  .dash__nav div:nth-child(1){ width:70%; background:rgba(255,255,255,0.3); }
+  .dash__nav div:nth-child(3){ width:55%; }
+  .dash__nav div:nth-child(5){ width:80%; }
+
+  .dash__main{ padding:26px 30px; }
+  .dash__topbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; }
+  .dash__crumb{ width:160px; height:11px; border-radius:4px; background:#e7e8ec; }
+  .dash__avatar{ width:26px; height:26px; border-radius:50%; background:#d8dae0; }
+
+  .dash__tiles{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:18px; }
+  .dash__tile{ background:#fafafc; border:1px solid #ececf0; border-radius:12px; padding:14px; }
+  .dash__tile .lbl{ width:60%; height:8px; border-radius:3px; background:#dcdee3; margin-bottom:10px; }
+  .dash__tile .num{ font-family:'JetBrains Mono', monospace; font-size:18px; font-weight:600; color:#20232b; }
+
+  .dash__chart{ background:#fafafc; border:1px solid #ececf0; border-radius:12px; padding:18px; height:120px; display:flex; align-items:flex-end; gap:6px; margin-bottom:18px; }
+  .dash__chart span{ flex:1; background: linear-gradient(180deg, #7c86f0, var(--accent)); border-radius:3px 3px 0 0; animation: chartbar 3.6s ease-in-out infinite; }
+
+  .dash__table{ background:#fafafc; border:1px solid #ececf0; border-radius:12px; padding:6px 16px; }
+  .dash__row{ display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid #eee; }
+  .dash__row:last-child{ border-bottom:none; }
+  .dash__dot{ width:7px; height:7px; border-radius:50%; background:var(--green); flex-shrink:0; }
+  .dash__dot.amber{ background:var(--amber); }
+  .dash__row .bar{ height:8px; border-radius:3px; background:#dcdee3; flex:1; max-width:220px; }
+  .dash__row .time{ margin-left:auto; font-family:'JetBrains Mono', monospace; font-size:10px; color:#a7abb5; }
+
+  @keyframes chartbar{ 0%,100%{ transform:scaleY(0.6); } 50%{ transform:scaleY(1); } }
+
+  @media (max-width:900px){ .dash{ grid-template-columns:1fr; } .dash__side{ display:none; } }
+
+  /* ================= Foreground modal ================= */
+  .modal{ position:relative; z-index:2; width:100%; max-width:404px; margin:24px; }
+  .card{
+    position:relative;
+    overflow:hidden;
+    background: var(--card);
+    border:1px solid var(--line);
+    border-radius:20px;
+    box-shadow: 0 44px 100px -26px rgba(17,19,24,0.45);
+    padding:34px 32px 28px;
+  }
+  .load-bar{
+    position:absolute; top:0; left:-30%; height:2px; width:30%;
+    background: var(--accent);
+    opacity:0;
+  }
+  .load-bar.active{ opacity:1; animation: loadsweep 0.9s ease-in-out infinite; }
+  @keyframes loadsweep{ 0%{ left:-30%; width:30%; } 55%{ left:60%; width:45%; } 100%{ left:100%; width:30%; } }
+
+  .brand{ display:flex; align-items:center; justify-content:center; gap:9px; margin-bottom:22px; }
+  .brand__mark{
+    width:26px; height:26px; border-radius:7px;
+    background: var(--accent);
+    color:#fff; font-weight:700; font-size:13px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .brand__word{ font-weight:600; font-size:15px; letter-spacing:-0.01em; }
+
+  h1{ text-align:center; font-size:20px; font-weight:600; letter-spacing:-0.01em; margin:0 0 6px; }
+  .sub{ text-align:center; font-size:13.5px; color:var(--muted); line-height:1.5; margin:0 0 24px; }
+
+  .step{ display:none; }
+  .step.active{ display:block; animation: stepIn .35s var(--ease); }
+  @keyframes stepIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
+
+  .field label{ display:block; font-size:13px; font-weight:600; color:var(--ink); margin:0 0 7px 2px; }
+  .field{ position:relative; margin-bottom:14px; }
+  .field input{
+    width:100%; padding:12px 14px;
+    background: var(--field);
+    border:1px solid var(--field-border);
+    border-radius:10px;
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    font-size:14px;
+    outline:none;
+    transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
+  }
+  .field input:focus{ border-color:var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .field--pw input{ padding-right:64px; }
+  .pw-toggle{
+    position:absolute; right:10px; bottom:10px;
+    background:none; border:none; cursor:pointer;
+    font-size:11px; font-weight:700; letter-spacing:0.03em;
+    color:var(--muted); padding:4px 6px;
+  }
+  .pw-toggle:hover{ color:var(--accent); }
+  .pw-toggle:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:6px; }
+
+  .btn-primary{
+    width:100%; padding:12.5px 16px;
+    border:none; border-radius:10px;
+    background: var(--accent);
+    color:#fff;
+    font-weight:600; font-size:14px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    transition: background .2s var(--ease), transform .2s var(--ease);
+  }
+  .btn-primary:hover{ background:var(--accent-dark); transform:translateY(-1px); }
+  .btn-primary:focus-visible{ outline:2px solid var(--accent-dark); outline-offset:2px; }
+  .btn-primary.outline{
+    background:transparent; color:var(--ink);
+    border:1px solid var(--field-border);
+  }
+  .btn-primary.outline:hover{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent); transform:translateY(-1px); }
+  .btn-primary svg{ width:15px; height:15px; }
+
+  .divider{ display:flex; align-items:center; gap:12px; margin:16px 0; color:var(--muted-2); font-size:11.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; }
+  .divider::before, .divider::after{ content:""; flex:1; height:1px; background:var(--field-border); }
+
+  .org-chip{
+    display:flex; align-items:center; gap:10px;
+    padding:11px 12px;
+    background: var(--field);
+    border:1px solid var(--field-border);
+    border-radius:12px;
+    margin-bottom:16px;
+  }
+  .org-chip__avatar{
+    width:32px; height:32px; border-radius:9px;
+    background: var(--accent-soft); color:var(--accent);
+    font-weight:700; font-size:12.5px;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .org-chip__body{ flex:1; min-width:0; }
+  .org-chip__name{ font-size:13.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .org-chip__email{ font-size:11.5px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .org-chip__change{ font-size:12px; font-weight:600; color:var(--accent); background:none; border:none; cursor:pointer; flex-shrink:0; }
+  .org-chip__change:hover{ text-decoration:underline; }
+  .org-chip__change:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:4px; }
+
+  .textlink-row{ text-align:center; margin-top:14px; }
+  .textlink{
+    background:none; border:none; cursor:pointer;
+    font-size:13px; font-weight:600; color:var(--accent);
+    padding:2px 4px;
+  }
+  .textlink:hover{ text-decoration:underline; }
+  .textlink:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:4px; }
+
+  .row-between{ display:flex; align-items:center; justify-content:space-between; font-size:13px; margin:2px 0 16px; }
+  .link{ color:var(--muted); text-decoration:none; font-weight:500; }
+  .link:hover{ color:var(--accent); }
+  .link:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:3px; }
+
+  .foot{ text-align:center; font-size:13px; color:var(--muted); margin-top:20px; }
+  .foot a{ color:var(--accent); font-weight:600; text-decoration:none; }
+  .foot a:hover{ text-decoration:underline; }
+
+  .trust{
+    display:flex; align-items:center; justify-content:center; gap:14px;
+    margin-top:20px; padding-top:18px;
+    border-top:1px solid var(--line);
+    font-size:11px; color:var(--muted-2);
+  }
+  .trust span{ display:flex; align-items:center; gap:5px; }
+  .trust svg{ width:11px; height:11px; opacity:0.8; }
+
+  @media (max-width:440px){
+    .card{ padding:28px 22px 24px; }
+    .trust{ flex-wrap:wrap; gap:8px 14px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition-duration:0.01ms !important; animation-duration:0.01ms !important; }
+    .dash__chart span{ animation:none; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="dash" aria-hidden="true">
+    <div class="dash__side">
+      <div class="dash__logo"></div>
+      <div class="dash__nav">
+        <div></div><div></div><div></div><div></div><div></div>
+      </div>
+    </div>
+    <div class="dash__main">
+      <div class="dash__topbar">
+        <div class="dash__crumb"></div>
+        <div class="dash__avatar"></div>
+      </div>
+      <div class="dash__tiles">
+        <div class="dash__tile"><div class="lbl"></div><div class="num">128ms</div></div>
+        <div class="dash__tile"><div class="lbl"></div><div class="num">99.98%</div></div>
+        <div class="dash__tile"><div class="lbl"></div><div class="num">342</div></div>
+        <div class="dash__tile"><div class="lbl"></div><div class="num">$18.2k</div></div>
+      </div>
+      <div class="dash__chart">
+        <span style="animation-delay:0s"></span><span style="animation-delay:.2s"></span><span style="animation-delay:.4s"></span>
+        <span style="animation-delay:.1s"></span><span style="animation-delay:.3s"></span><span style="animation-delay:.5s"></span>
+        <span style="animation-delay:.15s"></span><span style="animation-delay:.35s"></span><span style="animation-delay:.25s"></span>
+        <span style="animation-delay:.45s"></span>
+      </div>
+      <div class="dash__table">
+        <div class="dash__row"><span class="dash__dot"></span><span class="bar"></span><span class="time">2m ago</span></div>
+        <div class="dash__row"><span class="dash__dot amber"></span><span class="bar"></span><span class="time">14m ago</span></div>
+        <div class="dash__row"><span class="dash__dot"></span><span class="bar"></span><span class="time">41m ago</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="dash__scrim" aria-hidden="true"></div>
+
+  <div class="modal">
+    <div class="card">
+      <div class="load-bar" id="loadBar"></div>
+
+      <div class="brand">
+        <span class="brand__mark">V</span>
+        <span class="brand__word">Vantage</span>
+      </div>
+
+      <h1 id="heading">Sign in to Vantage</h1>
+      <p class="sub" id="subcopy">Enter your work email to continue.</p>
+
+      <form id="loginForm" novalidate>
+
+        <!-- Step 1: identify -->
+        <div class="step active" id="stepIdentify">
+          <div class="field">
+            <label for="email">Work email</label>
+            <input type="email" id="email" placeholder="you@company.com" autocomplete="email">
+          </div>
+          <button type="button" class="btn-primary" id="continueBtn">Continue</button>
+
+          <div class="divider">Or</div>
+
+          <button type="button" class="btn-primary outline">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v5"/></svg>
+            Continue with SSO
+          </button>
+        </div>
+
+        <!-- Step 2: org detected -->
+        <div class="step" id="stepAuth">
+          <div class="org-chip">
+            <span class="org-chip__avatar" id="orgAvatar">AC</span>
+            <span class="org-chip__body">
+              <span class="org-chip__name" id="orgName">Acme workspace</span>
+              <span class="org-chip__email" id="orgEmail">you@acme.io</span>
+            </span>
+            <button type="button" class="org-chip__change" id="changeEmailBtn">Change</button>
+          </div>
+
+          <div id="ssoBlock">
+            <button type="button" class="btn-primary" id="ssoBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v5"/></svg>
+              Continue with SSO
+            </button>
+            <div class="textlink-row">
+              <button type="button" class="textlink" id="usePasswordLink">Use password instead</button>
+            </div>
+          </div>
+
+          <div id="passwordBlock" style="display:none;">
+            <div class="field field--pw">
+              <label for="password">Password</label>
+              <input type="password" id="password" autocomplete="current-password">
+              <button type="button" class="pw-toggle" id="pwToggle" aria-pressed="false">SHOW</button>
+            </div>
+            <div class="row-between">
+              <span></span>
+              <a href="#" class="link">Forgot password?</a>
+            </div>
+            <button type="submit" class="btn-primary" id="submitBtn" data-loading="false">
+              <span class="btn-label">Sign in</span>
+            </button>
+            <div class="textlink-row">
+              <button type="button" class="textlink" id="useSsoLink">Use SSO instead</button>
+            </div>
+          </div>
+        </div>
+
+      </form>
+
+      <p class="foot">Don't have an account? <a href="#">Talk to sales</a></p>
+
+      <div class="trust">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10V5l-8-3z"/></svg>SOC 2 Type II</span>
+        <span>GDPR ready</span>
+        <span>99.99% uptime</span>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const stepIdentify = document.getElementById('stepIdentify');
+  const stepAuth = document.getElementById('stepAuth');
+  const heading = document.getElementById('heading');
+  const subcopy = document.getElementById('subcopy');
+  const emailInput = document.getElementById('email');
+  const continueBtn = document.getElementById('continueBtn');
+  const changeEmailBtn = document.getElementById('changeEmailBtn');
+  const ssoBlock = document.getElementById('ssoBlock');
+  const passwordBlock = document.getElementById('passwordBlock');
+  const usePasswordLink = document.getElementById('usePasswordLink');
+  const useSsoLink = document.getElementById('useSsoLink');
+  const orgAvatar = document.getElementById('orgAvatar');
+  const orgName = document.getElementById('orgName');
+  const orgEmail = document.getElementById('orgEmail');
+  const loadBar = document.getElementById('loadBar');
+
+  function deriveOrg(email){
+    const at = email.indexOf('@');
+    if (at === -1 || at === email.length - 1){
+      return { name: 'your workspace', initials: '—' };
+    }
+    const domain = email.slice(at + 1);
+    const base = domain.split('.')[0] || 'workspace';
+    const name = base.charAt(0).toUpperCase() + base.slice(1);
+    const initials = name.slice(0, 2).toUpperCase();
+    return { name, initials };
+  }
+
+  function withLoading(duration, cb){
+    loadBar.classList.add('active');
+    setTimeout(() => {
+      loadBar.classList.remove('active');
+      cb();
+    }, duration);
+  }
+
+  continueBtn.addEventListener('click', () => {
+    const email = emailInput.value.trim() || 'you@acme.io';
+    withLoading(600, () => {
+      const org = deriveOrg(email);
+      orgAvatar.textContent = org.initials;
+      orgName.textContent = org.name + ' workspace';
+      orgEmail.textContent = email;
+      heading.textContent = 'Continue to ' + org.name;
+      subcopy.textContent = 'We recognized your organization.';
+      stepIdentify.classList.remove('active');
+      stepAuth.classList.add('active');
+      ssoBlock.style.display = '';
+      passwordBlock.style.display = 'none';
+    });
+  });
+
+  changeEmailBtn.addEventListener('click', () => {
+    heading.textContent = 'Sign in to Vantage';
+    subcopy.textContent = 'Enter your work email to continue.';
+    stepAuth.classList.remove('active');
+    stepIdentify.classList.add('active');
+    emailInput.focus();
+  });
+
+  usePasswordLink.addEventListener('click', () => {
+    ssoBlock.style.display = 'none';
+    passwordBlock.style.display = 'block';
+  });
+
+  useSsoLink.addEventListener('click', () => {
+    passwordBlock.style.display = 'none';
+    ssoBlock.style.display = '';
+  });
+
+  document.getElementById('ssoBtn').addEventListener('click', () => {
+    withLoading(1100, () => {});
+  });
+
+  // Password visibility toggle
+  const pwInput = document.getElementById('password');
+  const pwToggle = document.getElementById('pwToggle');
+  pwToggle.addEventListener('click', () => {
+    const isPw = pwInput.type === 'password';
+    pwInput.type = isPw ? 'text' : 'password';
+    pwToggle.textContent = isPw ? 'HIDE' : 'SHOW';
+    pwToggle.setAttribute('aria-pressed', String(isPw));
+  });
+
+  // Demo submit
+  const form = document.getElementById('loginForm');
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    withLoading(1200, () => {});
+  });
+</script>
+</body>
+</html>
